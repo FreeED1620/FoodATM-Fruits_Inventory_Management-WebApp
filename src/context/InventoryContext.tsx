@@ -36,7 +36,6 @@ interface InventoryContextType {
   closeActionModal: () => void;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   hideToast: () => void;
-  resetDemoData: () => void;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -112,12 +111,6 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       showToast(err.message || 'Failed to process inventory action', 'error');
       return false;
     }
-  };
-
-  const resetDemoData = () => {
-    const resetItems = InventoryService.resetToMockData();
-    setItems(resetItems);
-    showToast('Reset inventory to initial demo data', 'info');
   };
 
   const openAddModal = () => setIsAddModalOpen(true);
@@ -216,7 +209,6 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         closeActionModal,
         showToast,
         hideToast,
-        resetDemoData,
       }}
     >
       {children}

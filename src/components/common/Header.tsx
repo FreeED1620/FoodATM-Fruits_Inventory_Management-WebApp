@@ -1,9 +1,9 @@
 import React from 'react';
-import { Plus, RotateCcw } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
 
 export const Header: React.FC = () => {
-  const { openAddModal, resetDemoData } = useInventory();
+  const { openAddModal } = useInventory();
 
   return (
     <header className="header-bar">
@@ -19,15 +19,6 @@ export const Header: React.FC = () => {
         </div>
 
         <div className="header-actions">
-          <button
-            className="btn btn-secondary btn-icon-only"
-            onClick={resetDemoData}
-            title="Reset Demo Data"
-            type="button"
-          >
-            <RotateCcw size={18} />
-          </button>
-
           <button
             className="btn btn-primary"
             onClick={openAddModal}
