@@ -2,7 +2,7 @@ import React from 'react';
 import { Calendar, Play } from 'lucide-react';
 import { InventoryItem } from '../../types/inventory';
 import { formatDate, getExpiryStatus } from '../../utils/dateUtils';
-import { getFruitIcon } from '../../utils/formatters';
+import { FruitImage } from '../common/FruitImage';
 import { useInventory } from '../../context/InventoryContext';
 
 interface InventoryCardProps {
@@ -12,7 +12,6 @@ interface InventoryCardProps {
 export const InventoryCard: React.FC<InventoryCardProps> = ({ item }) => {
   const { openActionModal } = useInventory();
   const expiryInfo = getExpiryStatus(item.expiryDate);
-  const fruitIcon = getFruitIcon(item.fruitName);
 
   const getCardThemeClass = () => {
     switch (expiryInfo.urgency) {
@@ -28,13 +27,13 @@ export const InventoryCard: React.FC<InventoryCardProps> = ({ item }) => {
   };
 
   return (
-    <div className={`inventory-card ${getCardThemeClass()}`} onClick={() => openActionModal(item)}>
+    <div className={`inventory-card ${getCardThemeClass()}`}>
       {/* Top Header Row */}
       <div className="card-top-row">
         <div className="card-fruit-info-group">
-          {/* White Box with Fruit Emoji */}
+          {/* White Box with Fruit Image */}
           <div className="card-emoji-box">
-            {fruitIcon}
+            <FruitImage fruitName={item.fruitName} size={36} />
           </div>
 
           {/* White Box with Fruit Name & Batch Pill */}
@@ -71,10 +70,7 @@ export const InventoryCard: React.FC<InventoryCardProps> = ({ item }) => {
         {/* Big Green Process Action Button */}
         <button
           className="card-process-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            openActionModal(item);
-          }}
+          onClick={() => openActionModal(item)}
           type="button"
           aria-label={`Process ${item.fruitName}`}
         >

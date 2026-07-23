@@ -32,7 +32,7 @@ export class InventoryService {
     return sortByNearestExpiry(data.map(item => this.mapFromSupabase(item)));
   }
 
-  static async addFruit(input: AddFruitInput): Promise<InventoryItem> {
+  static async addFruit(input: AddFruitInput, shiftNumber: number): Promise<InventoryItem> {
     const client = requireSupabase();
     const existingItems = await this.getItems();
 
@@ -41,7 +41,7 @@ export class InventoryService {
     const inventoryId = generateInventoryId(input.batchNumber, categoryCode, seqNumber);
 
     const newItem: InventoryItem = {
-      id: crypto.randomUUID ? crypto.randomUUID() : `item-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      id: '',
       inventoryId,
       fruitName: input.fruitName.trim(),
       categoryCode,
@@ -52,10 +52,13 @@ export class InventoryService {
       receivedDate: input.receivedDate,
       expiryDate: input.expiryDate,
       status: 'AVAILABLE',
+      addedInShift: shiftNumber,
       createdAt: new Date().toISOString(),
     };
 
     const payload = this.mapToSupabase(newItem);
+    delete payload.id;
+    payload.added_in_shift = shiftNumber;
     const { data, error } = await client
       .from('inventory_items')
       .insert([payload])
@@ -70,7 +73,7 @@ export class InventoryService {
     return this.mapFromSupabase(data);
   }
 
-  static async recordAction(input: ActionInput): Promise<{ updatedItem: InventoryItem; log: InventoryLog }> {
+  static async recordAction(input: ActionInput, shiftNumber: number): Promise<{ updatedItem: InventoryItem; log: InventoryLog }> {
     const client = requireSupabase();
     const items = await this.getItems();
     const targetItem = items.find(i => i.id === input.itemId);
@@ -94,12 +97,15 @@ export class InventoryService {
     };
 
     const newLog: InventoryLog = {
-      id: crypto.randomUUID ? crypto.randomUUID() : `log-${Date.now()}`,
+      id: '',
       itemId: targetItem.id,
       inventoryId: targetItem.inventoryId,
       action: input.action,
       quantity: Math.round(input.quantity),
       recipient: input.action === 'TRANSFER' ? (input.recipient || null) : null,
+      shiftNumber,
+      reversed: false,
+      reversedAt: null,
       createdAt: new Date().toISOString(),
     };
 
@@ -120,6 +126,7 @@ export class InventoryService {
         action: input.action,
         quantity_affected: Math.round(input.quantity),
         recipient_destination: input.action === 'TRANSFER' ? (input.recipient || null) : null,
+        shift_number: shiftNumber,
       }]);
 
     if (logError) {
@@ -127,6 +134,88 @@ export class InventoryService {
     }
 
     return { updatedItem, log: newLog };
+  }
+
+  static async getLogs(): Promise<InventoryLog[]> {
+    const client = requireSupabase();
+
+    const { data, error } = await client
+      .from('inventory_logs')
+      .select('*, inventory_items(fruit_name)')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase fetch logs error:', error);
+      throw new Error(`Failed to fetch logs: ${error.message}`);
+    }
+
+    return data.map(row => ({
+      id: row.id,
+      itemId: row.inventory_item_id,
+      inventoryId: row.inventory_id,
+      action: row.action,
+      quantity: Number(row.quantity_affected),
+      recipient: row.recipient_destination,
+      shiftNumber: row.shift_number || 1,
+      reversed: row.reversed || false,
+      reversedAt: row.reversed_at || null,
+      createdAt: row.created_at,
+      fruitName: row.inventory_items?.fruit_name || 'Unknown',
+    }));
+  }
+
+  static async undoAction(logId: string): Promise<void> {
+    const client = requireSupabase();
+
+    const { data: log, error: logFetchError } = await client
+      .from('inventory_logs')
+      .select('*')
+      .eq('id', logId)
+      .single();
+
+    if (logFetchError || !log) {
+      throw new Error('Log entry not found.');
+    }
+
+    if (log.reversed) {
+      throw new Error('This action has already been undone.');
+    }
+
+    const logTime = new Date(log.created_at).getTime();
+    const now = Date.now();
+    const threeHoursMs = 3 * 60 * 60 * 1000;
+    if (now - logTime > threeHoursMs) {
+      throw new Error('This transaction is older than 3 hours and cannot be undone.');
+    }
+
+    const { data: item, error: itemError } = await client
+      .from('inventory_items')
+      .select('*')
+      .eq('id', log.inventory_item_id)
+      .single();
+
+    if (itemError || !item) {
+      throw new Error('Associated inventory item not found.');
+    }
+
+    const restoredQuantity = Number(item.quantity) + Number(log.quantity_affected);
+    const { error: updateError } = await client
+      .from('inventory_items')
+      .update({ quantity: restoredQuantity, status: 'AVAILABLE' })
+      .eq('id', log.inventory_item_id);
+
+    if (updateError) {
+      throw new Error(`Failed to restore quantity: ${updateError.message}`);
+    }
+
+    const { error: reverseError } = await client
+      .from('inventory_logs')
+      .update({ reversed: true, reversed_at: new Date().toISOString() })
+      .eq('id', logId);
+
+    if (reverseError) {
+      throw new Error(`Failed to mark log as reversed: ${reverseError.message}`);
+    }
   }
 
   private static mapFromSupabase(row: any): InventoryItem {
@@ -142,6 +231,7 @@ export class InventoryService {
       receivedDate: row.received_date,
       expiryDate: row.expiry_date,
       status: row.status,
+      addedInShift: row.added_in_shift || 1,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };

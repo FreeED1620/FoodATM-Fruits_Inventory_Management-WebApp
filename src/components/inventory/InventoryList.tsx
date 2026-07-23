@@ -38,7 +38,7 @@ export const InventoryList: React.FC = () => {
           <input
             type="text"
             className="search-input"
-            placeholder="Search fruit name, ID (e.g. B01-F001), or Batch..."
+            placeholder="Search fruit name, ID..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             maxLength={50}
@@ -68,12 +68,14 @@ export const InventoryList: React.FC = () => {
           </button>
 
           <button
-            className={`chip-btn ${activeExpiryFilter === 'FRESH' ? 'active' : ''}`}
-            onClick={() => setActiveExpiryFilter(activeExpiryFilter === 'FRESH' ? 'ALL' : 'FRESH')}
+            className={`chip-btn ${activeExpiryFilter === 'EXPIRED' ? 'active' : ''}`}
+            onClick={() => setActiveExpiryFilter(activeExpiryFilter === 'EXPIRED' ? 'ALL' : 'EXPIRED')}
             type="button"
+            style={activeExpiryFilter === 'EXPIRED' ? { background: '#991b1b', borderColor: '#991b1b' } : {}}
           >
-            🟢 Fresh
+            🚫 Expired
           </button>
+
 
           {uniqueBatches.map(batchNum => (
             <button

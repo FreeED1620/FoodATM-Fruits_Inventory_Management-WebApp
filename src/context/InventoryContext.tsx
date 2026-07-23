@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { ActionInput, AddFruitInput, InventoryItem, InventoryStats } from '../types/inventory';
+import { ActionInput, AddFruitInput, InventoryItem, InventoryLog, InventoryStats } from '../types/inventory';
 import { InventoryService } from '../services/inventoryService';
 import { getDaysUntil, sortByNearestExpiry } from '../utils/dateUtils';
+import { useShift } from './ShiftContext';
 
 interface ToastState {
   id: string;
@@ -12,11 +13,12 @@ interface ToastState {
 interface InventoryContextType {
   items: InventoryItem[];
   filteredItems: InventoryItem[];
+  logs: InventoryLog[];
   loading: boolean;
   error: string | null;
   searchQuery: string;
   activeBatchFilter: number | null;
-  activeExpiryFilter: 'ALL' | 'CRITICAL' | 'WARNING' | 'FRESH';
+  activeExpiryFilter: 'ALL' | 'CRITICAL' | 'WARNING' | 'FRESH' | 'EXPIRED';
   isAddModalOpen: boolean;
   isActionModalOpen: boolean;
   selectedItemForAction: InventoryItem | null;
@@ -25,11 +27,13 @@ interface InventoryContextType {
   
   // Actions
   refreshItems: () => Promise<void>;
+  fetchLogs: () => Promise<void>;
+  undoAction: (logId: string) => Promise<boolean>;
   addFruit: (input: AddFruitInput) => Promise<boolean>;
   recordItemAction: (input: ActionInput) => Promise<boolean>;
   setSearchQuery: (query: string) => void;
   setActiveBatchFilter: (batch: number | null) => void;
-  setActiveExpiryFilter: (filter: 'ALL' | 'CRITICAL' | 'WARNING' | 'FRESH') => void;
+  setActiveExpiryFilter: (filter: 'ALL' | 'CRITICAL' | 'WARNING' | 'FRESH' | 'EXPIRED') => void;
   openAddModal: () => void;
   closeAddModal: () => void;
   openActionModal: (item: InventoryItem) => void;
@@ -41,14 +45,16 @@ interface InventoryContextType {
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
 
 export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { currentShift } = useShift();
   const [items, setItems] = useState<InventoryItem[]>([]);
+  const [logs, setLogs] = useState<InventoryLog[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
   // Filtering & Search states
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeBatchFilter, setActiveBatchFilter] = useState<number | null>(null);
-  const [activeExpiryFilter, setActiveExpiryFilter] = useState<'ALL' | 'CRITICAL' | 'WARNING' | 'FRESH'>('ALL');
+  const [activeExpiryFilter, setActiveExpiryFilter] = useState<'ALL' | 'CRITICAL' | 'WARNING' | 'FRESH' | 'EXPIRED'>('ALL');
 
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -85,13 +91,40 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [showToast]);
 
+  const fetchLogs = useCallback(async () => {
+    try {
+      const fetchedLogs = await InventoryService.getLogs();
+      setLogs(fetchedLogs);
+    } catch (err: any) {
+      console.error(err);
+      showToast('Error loading transaction history', 'error');
+    }
+  }, [showToast]);
+
+  const undoAction = useCallback(async (logId: string): Promise<boolean> => {
+    try {
+      await InventoryService.undoAction(logId);
+      await refreshItems();
+      await fetchLogs();
+      showToast('Action undone successfully!', 'success');
+      return true;
+    } catch (err: any) {
+      showToast(err.message || 'Failed to undo action', 'error');
+      return false;
+    }
+  }, [refreshItems, fetchLogs, showToast]);
+
   useEffect(() => {
     refreshItems();
   }, [refreshItems]);
 
   const addFruit = async (input: AddFruitInput): Promise<boolean> => {
+    if (currentShift === null) {
+      showToast('No active shift. Please select a shift first.', 'error');
+      return false;
+    }
     try {
-      const createdItem = await InventoryService.addFruit(input);
+      const createdItem = await InventoryService.addFruit(input, currentShift);
       setItems(prev => sortByNearestExpiry([createdItem, ...prev]));
       showToast(`Added ${createdItem.fruitName} (${createdItem.inventoryId}) successfully!`, 'success');
       return true;
@@ -102,8 +135,12 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const recordItemAction = async (input: ActionInput): Promise<boolean> => {
+    if (currentShift === null) {
+      showToast('No active shift. Please select a shift first.', 'error');
+      return false;
+    }
     try {
-      const { updatedItem } = await InventoryService.recordAction(input);
+      const { updatedItem } = await InventoryService.recordAction(input, currentShift);
       setItems(prev => sortByNearestExpiry(prev.map(i => i.id === updatedItem.id ? updatedItem : i)));
       showToast(`Action recorded for ${updatedItem.inventoryId} (${input.action})`, 'success');
       return true;
@@ -149,7 +186,8 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Expiry Filter match
       if (activeExpiryFilter !== 'ALL') {
         const days = getDaysUntil(item.expiryDate);
-        if (activeExpiryFilter === 'CRITICAL' && days > 3) return false;
+        if (activeExpiryFilter === 'EXPIRED' && days >= 0) return false;
+        if (activeExpiryFilter === 'CRITICAL' && (days < 0 || days > 3)) return false;
         if (activeExpiryFilter === 'WARNING' && (days <= 3 || days > 7)) return false;
         if (activeExpiryFilter === 'FRESH' && days <= 7) return false;
       }
@@ -187,6 +225,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       value={{
         items,
         filteredItems,
+        logs,
         loading,
         error,
         searchQuery,
@@ -198,6 +237,8 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         toast,
         stats,
         refreshItems,
+        fetchLogs,
+        undoAction,
         addFruit,
         recordItemAction,
         setSearchQuery,

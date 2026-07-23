@@ -1,6 +1,8 @@
-/**
- * Helper to match fruit names with visual icons for quick warehouse visual reference
- */
+export function getFruitImageUrl(fruitName: string): string {
+  const name = fruitName.toLowerCase().trim().replace(/\s+/g, '-');
+  return `/fruit-images/${name}.png`;
+}
+
 export function getFruitIcon(fruitName: string): string {
   const name = fruitName.toLowerCase().trim();
 
@@ -19,32 +21,15 @@ export function getFruitIcon(fruitName: string): string {
   if (name.includes('kiwi')) return '🥝';
   if (name.includes('avocado')) return '🥑';
   if (name.includes('coconut')) return '🥥';
-  if (name.includes('papaya')) return '🥭';
+  if (name.includes('papaya')) return '🍈';
   if (name.includes('pomegranate')) return '🍎';
+  if (name.includes('blueberry') || name.includes('blueberries')) return '🫐';
+  if (name.includes('tomato') || name.includes('tomatoes')) return '🍅';
+  if (name.includes('dragon')) return '🐉';
 
-  return '🧺'; // Default warehouse fruit crate fallback
+  return '🧺';
 }
 
-/**
- * Simple fruit names suggestion list for quick selection in Add Fruit Form
- */
-export const POPULAR_FRUITS = [
-  'Apple',
-  'Banana',
-  'Orange',
-  'Mango',
-  'Grapes',
-  'Watermelon',
-  'Pineapple',
-  'Strawberry',
-  'Peach',
-  'Pear',
-  'Kiwi'
-];
-
-/**
- * Warehouse measurement units - ONLY Boxes
- */
 export const WAREHOUSE_UNITS = [
   { value: 'boxes', label: 'Boxes' },
 ];

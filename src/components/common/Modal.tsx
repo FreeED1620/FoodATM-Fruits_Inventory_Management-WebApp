@@ -10,16 +10,9 @@ interface ModalProps {
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-
     if (isOpen) {
       document.body.classList.add('modal-open');
       document.documentElement.classList.add('modal-open');
-      window.addEventListener('keydown', handleKeyDown);
     } else {
       document.body.classList.remove('modal-open');
       document.documentElement.classList.remove('modal-open');
@@ -28,16 +21,14 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
     return () => {
       document.body.classList.remove('modal-open');
       document.documentElement.classList.remove('modal-open');
-      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
     <div
       className="modal-overlay"
-      onClick={onClose}
       onTouchMove={(e) => {
         // Prevent background elastic touch scrolling on mobile devices when touching backdrop
         if (e.target === e.currentTarget) {

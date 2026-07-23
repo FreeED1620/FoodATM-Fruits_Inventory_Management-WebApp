@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS public.inventory_items (
     received_date DATE NOT NULL DEFAULT CURRENT_DATE,
     expiry_date DATE NOT NULL,
     status inventory_status DEFAULT 'AVAILABLE',
+    added_in_shift INT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT chk_expiry_after_received CHECK (expiry_date >= received_date)
@@ -84,6 +85,7 @@ CREATE TABLE IF NOT EXISTS public.inventory_logs (
     action action_type NOT NULL,
     quantity_affected INT NOT NULL,
     recipient_destination VARCHAR(200),       -- NULL for Sell/Distribute, Branch name for Transfer
+    shift_number INT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

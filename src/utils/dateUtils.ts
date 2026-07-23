@@ -123,3 +123,19 @@ export function isValidDateRange(receivedDate: string, expiryDate: string): bool
   if (!receivedDate || !expiryDate) return false;
   return expiryDate >= receivedDate;
 }
+
+/**
+ * Format ISO timestamp into user-friendly date+time (e.g., "24 Jul 2026, 3:45 PM")
+ */
+export function formatDateTime(isoStr: string): string {
+  if (!isoStr) return '';
+  const date = new Date(isoStr);
+  return date.toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}

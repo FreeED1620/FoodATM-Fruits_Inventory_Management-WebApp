@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
+import { FruitImage } from '../common/FruitImage';
 import { useInventory } from '../../context/InventoryContext';
 import { getFutureDateString, getTodayString, isValidDateRange } from '../../utils/dateUtils';
 import { CategoryCode } from '../../types/inventory';
 import { Sparkles, Check } from 'lucide-react';
 
-const FRUIT_GRID_OPTIONS = [
-  { name: 'Apple', icon: '🍎' },
-  { name: 'Banana', icon: '🍌' },
-  { name: 'Orange', icon: '🍊' },
-  { name: 'Mango', icon: '🥭' },
-  { name: 'Grapes', icon: '🍇' },
-  { name: 'Watermelon', icon: '🍉' },
-  { name: 'Pineapple', icon: '🍍' },
-  { name: 'Strawberry', icon: '🍓' },
-  { name: 'Peach', icon: '🍑' },
-  { name: 'Pear', icon: '🍐' },
-  { name: 'Kiwi', icon: '🥝' },
-  { name: 'Lemon', icon: '🍋' },
+const FRUIT_OPTIONS = [
+  'Apple', 'Banana', 'Orange', 'Mango', 'Grapes', 'Watermelon',
+  'Pineapple', 'Strawberry', 'Peach', 'Pear', 'Kiwi', 'Lemon',
+  'Cherry', 'Avocado', 'Coconut', 'Papaya', 'Pomegranate',
+  'Blueberry', 'Tomato', 'Dragon Fruit',
 ];
 
 export const AddFruitModal: React.FC = () => {
@@ -32,7 +25,7 @@ export const AddFruitModal: React.FC = () => {
   const [categoryCode, setCategoryCode] = useState<CategoryCode>('F');
   const [receivedDate, setReceivedDate] = useState<string>(today);
   const [expiryDate, setExpiryDate] = useState<string>(defaultExpiry);
-  
+
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -107,21 +100,21 @@ export const AddFruitModal: React.FC = () => {
   return (
     <Modal isOpen={isAddModalOpen} onClose={closeAddModal} title="Add New Fruit Record">
       <form onSubmit={handleSubmit}>
-        {/* Visual Fruit Grid Selection */}
+        {/* Scrollable Fruit Image Strip */}
         <div className="form-group" style={{ marginBottom: '1.25rem' }}>
           <label className="form-label">Fruit Name *</label>
-          <div className="fruit-selector-grid">
-            {FRUIT_GRID_OPTIONS.map(item => {
-              const isSelected = fruitName.toLowerCase() === item.name.toLowerCase();
+          <div className="fruit-scroll-strip">
+            {FRUIT_OPTIONS.map(name => {
+              const isSelected = fruitName.toLowerCase() === name.toLowerCase();
               return (
                 <button
-                  key={item.name}
+                  key={name}
                   type="button"
                   className={`fruit-tile ${isSelected ? 'selected' : ''}`}
-                  onClick={() => setFruitName(item.name)}
+                  onClick={() => setFruitName(name)}
                 >
-                  <span className="fruit-tile-icon">{item.icon}</span>
-                  <span className="fruit-tile-name">{item.name}</span>
+                  <FruitImage fruitName={name} size={40} className="fruit-tile-img" />
+                  <span className="fruit-tile-name">{name}</span>
                   {isSelected && (
                     <div className="tile-check-badge">
                       <Check size={12} strokeWidth={3} />
@@ -187,7 +180,6 @@ export const AddFruitModal: React.FC = () => {
               className="form-input date-input"
               value={receivedDate}
               onChange={e => setReceivedDate(e.target.value)}
-              onClick={e => { try { (e.currentTarget as HTMLInputElement).showPicker(); } catch (_) {} }}
               required
             />
           </div>
@@ -200,7 +192,6 @@ export const AddFruitModal: React.FC = () => {
               value={expiryDate}
               min={receivedDate}
               onChange={e => setExpiryDate(e.target.value)}
-              onClick={e => { try { (e.currentTarget as HTMLInputElement).showPicker(); } catch (_) {} }}
               required
             />
           </div>
@@ -209,7 +200,7 @@ export const AddFruitModal: React.FC = () => {
         {/* Form Error */}
         {formError && (
           <div className="form-error" style={{ marginBottom: '1rem', background: 'rgba(239, 68, 68, 0.1)', padding: '0.65rem 0.85rem', borderRadius: '8px' }}>
-            ⚠️ {formError}
+            {formError}
           </div>
         )}
 

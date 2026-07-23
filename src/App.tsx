@@ -1,37 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ShiftProvider, useShift } from './context/ShiftContext';
 import { InventoryProvider, useInventory } from './context/InventoryContext';
+import { ShiftPicker } from './components/ShiftPicker';
 import { Header } from './components/common/Header';
 import { InventoryList } from './components/inventory/InventoryList';
+import { HistoryPage } from './components/inventory/HistoryPage';
 import { AddFruitModal } from './components/inventory/AddFruitModal';
 import { ActionModal } from './components/inventory/ActionModal';
 import { Toast } from './components/common/Toast';
 import { Plus } from 'lucide-react';
 
+type PageView = 'inventory' | 'history';
+
 const AppContent: React.FC = () => {
   const { openAddModal } = useInventory();
+  const [page, setPage] = useState<PageView>('inventory');
 
   return (
     <div className="app-container">
-      {/* Top sticky navbar header */}
-      <Header />
+      <Header onNavigate={setPage} currentPage={page} />
 
-      {/* Main Container */}
       <main className="main-content">
-        <InventoryList />
+        {page === 'inventory' && <InventoryList />}
+        {page === 'history' && <HistoryPage onBack={() => setPage('inventory')} />}
       </main>
 
-      {/* Mobile Floating (+) Add Button for touch users */}
-      <button
-        className="fab-add-btn"
-        onClick={openAddModal}
-        aria-label="Add Fruit Item"
-        title="Add New Fruit Record"
-        type="button"
-      >
-        <Plus size={28} />
-      </button>
+      {page === 'inventory' && (
+        <button
+          className="fab-add-btn"
+          onClick={openAddModal}
+          aria-label="Add Fruit Item"
+          title="Add New Fruit Record"
+          type="button"
+        >
+          <Plus size={28} />
+        </button>
+      )}
 
-      {/* Modals & Toasts */}
       <AddFruitModal />
       <ActionModal />
       <Toast />
@@ -39,11 +44,25 @@ const AppContent: React.FC = () => {
   );
 };
 
-export function App() {
+const ShiftGate: React.FC = () => {
+  const { currentShift } = useShift();
+
+  if (currentShift === null) {
+    return <ShiftPicker />;
+  }
+
   return (
     <InventoryProvider>
       <AppContent />
     </InventoryProvider>
+  );
+};
+
+export function App() {
+  return (
+    <ShiftProvider>
+      <ShiftGate />
+    </ShiftProvider>
   );
 }
 

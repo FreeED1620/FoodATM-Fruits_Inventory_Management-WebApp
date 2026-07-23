@@ -16,6 +16,7 @@ export interface InventoryItem {
   receivedDate: string; // YYYY-MM-DD
   expiryDate: string; // YYYY-MM-DD
   status: InventoryStatus;
+  addedInShift: number;
   createdAt: string;
   updatedAt?: string;
 }
@@ -45,7 +46,11 @@ export interface InventoryLog {
   action: ActionType;
   quantity: number;
   recipient: string | null; // Branch name for TRANSFER, null for SELL/DISTRIBUTE
+  shiftNumber: number;
+  reversed: boolean;
+  reversedAt: string | null;
   createdAt: string;
+  fruitName?: string;
 }
 
 export type ExpiryUrgency = 'EXPIRED' | 'CRITICAL' | 'WARNING' | 'FRESH';
