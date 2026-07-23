@@ -164,7 +164,7 @@ export const AddFruitModal: React.FC = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Batch # *</label>
+            <label className="form-label">Batch *</label>
             <input
               type="number"
               min="1"
@@ -184,9 +184,10 @@ export const AddFruitModal: React.FC = () => {
             <label className="form-label">Received Date *</label>
             <input
               type="date"
-              className="form-input"
+              className="form-input date-input"
               value={receivedDate}
               onChange={e => setReceivedDate(e.target.value)}
+              onClick={e => { try { (e.currentTarget as HTMLInputElement).showPicker(); } catch (_) {} }}
               required
             />
           </div>
@@ -195,10 +196,11 @@ export const AddFruitModal: React.FC = () => {
             <label className="form-label">Expiry Date *</label>
             <input
               type="date"
-              className="form-input"
+              className="form-input date-input"
               value={expiryDate}
               min={receivedDate}
               onChange={e => setExpiryDate(e.target.value)}
+              onClick={e => { try { (e.currentTarget as HTMLInputElement).showPicker(); } catch (_) {} }}
               required
             />
           </div>
