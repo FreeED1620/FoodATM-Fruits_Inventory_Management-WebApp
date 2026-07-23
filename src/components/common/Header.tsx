@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { Menu, Plus } from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
 
 export const Header: React.FC = () => {
@@ -20,12 +20,20 @@ export const Header: React.FC = () => {
 
         <div className="header-actions">
           <button
-            className="btn btn-primary"
+            className="btn btn-primary header-desktop-add"
             onClick={openAddModal}
             type="button"
           >
             <Plus size={20} />
             <span>Add Fruit</span>
+          </button>
+          
+          <button
+            className="header-menu-btn"
+            type="button"
+            aria-label="Menu"
+          >
+            <Menu size={24} color="#ffffff" strokeWidth={3} />
           </button>
         </div>
       </div>

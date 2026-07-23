@@ -1,9 +1,8 @@
 import React from 'react';
-import { Clock, Calendar, ArrowRight, AlertCircle } from 'lucide-react';
+import { Calendar, Play } from 'lucide-react';
 import { InventoryItem } from '../../types/inventory';
 import { formatDate, getExpiryStatus } from '../../utils/dateUtils';
 import { getFruitIcon } from '../../utils/formatters';
-import { formatBatchPrefix } from '../../utils/idGenerator';
 import { useInventory } from '../../context/InventoryContext';
 
 interface InventoryCardProps {
@@ -14,73 +13,76 @@ export const InventoryCard: React.FC<InventoryCardProps> = ({ item }) => {
   const { openActionModal } = useInventory();
   const expiryInfo = getExpiryStatus(item.expiryDate);
   const fruitIcon = getFruitIcon(item.fruitName);
-  const batchLabel = formatBatchPrefix(item.batchNumber);
 
-  const getBadgeClass = () => {
+  const getCardThemeClass = () => {
     switch (expiryInfo.urgency) {
       case 'EXPIRED':
       case 'CRITICAL':
-        return 'expiry-critical';
+        return 'card-theme-critical';
       case 'WARNING':
-        return 'expiry-warning';
+        return 'card-theme-warning';
       case 'FRESH':
       default:
-        return 'expiry-fresh';
+        return 'card-theme-fresh';
     }
   };
 
   return (
-    <div className="inventory-card" onClick={() => openActionModal(item)}>
-      {/* Header Row */}
-      <div className="card-header-row">
-        <div className="card-title-group">
-          <div className="card-fruit-emoji">{fruitIcon}</div>
-          <div>
+    <div className={`inventory-card ${getCardThemeClass()}`} onClick={() => openActionModal(item)}>
+      {/* Top Header Row */}
+      <div className="card-top-row">
+        <div className="card-fruit-info-group">
+          {/* White Box with Fruit Emoji */}
+          <div className="card-emoji-box">
+            {fruitIcon}
+          </div>
+
+          {/* White Box with Fruit Name & Batch Pill */}
+          <div className="card-title-box">
             <div className="card-fruit-name">{item.fruitName}</div>
-            <div className="pill-group">
-              <span className="pill pill-batch">Batch {item.batchNumber} ({batchLabel})</span>
-              <span className="pill pill-id">{item.inventoryId}</span>
-            </div>
+            <div className="pill-batch">Batch {item.batchNumber}</div>
           </div>
         </div>
 
         {/* Expiry Badge */}
-        <div className={`expiry-badge ${getBadgeClass()}`}>
-          {expiryInfo.urgency === 'CRITICAL' && <AlertCircle size={13} />}
-          <span>{expiryInfo.label}</span>
+        <div className="card-expiry-badge">
+          {expiryInfo.label}
         </div>
       </div>
 
-      {/* Details Grid */}
-      <div className="card-details-grid">
-        <div className="detail-item">
-          <div className="detail-label">Quantity</div>
-          <div className="detail-value" style={{ color: '#10b981' }}>
-            {item.quantity} {item.unit}
+      {/* Bottom Details & Action Button Row */}
+      <div className="card-bottom-row">
+        {/* White Details Box */}
+        <div className="card-details-box">
+          <div className="detail-col">
+            <div className="detail-label">QUANTITY</div>
+            <div className="detail-val-quantity">{item.quantity} {item.unit}</div>
+          </div>
+
+          <div className="detail-col">
+            <div className="detail-label">RECEIVED DATE</div>
+            <div className="detail-val-date">
+              <Calendar size={13} className="date-icon" />
+              <span>{formatDate(item.receivedDate)}</span>
+            </div>
           </div>
         </div>
 
-        <div className="detail-item">
-          <div className="detail-label">Received Date</div>
-          <div className="detail-value" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <Calendar size={13} color="#9ca3af" />
-            <span>{formatDate(item.receivedDate)}</span>
+        {/* Big Green Process Action Button */}
+        <button
+          className="card-process-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            openActionModal(item);
+          }}
+          type="button"
+          aria-label={`Process ${item.fruitName}`}
+        >
+          <span>Process</span>
+          <div className="play-icon-circle">
+            <Play size={11} fill="currentColor" style={{ marginLeft: '1px' }} />
           </div>
-        </div>
-
-        <div className="detail-item" style={{ gridColumn: 'span 2' }}>
-          <div className="detail-label">Expiry Date</div>
-          <div className="detail-value" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: expiryInfo.urgency === 'CRITICAL' ? '#fca5a5' : 'inherit' }}>
-            <Clock size={13} color={expiryInfo.urgency === 'CRITICAL' ? '#fca5a5' : '#9ca3af'} />
-            <span>{formatDate(item.expiryDate)}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Action Touch Hint */}
-      <div className="card-action-hint">
-        <span>Tap for Actions (Sell/Distribute/Transfer)</span>
-        <ArrowRight size={14} />
+        </button>
       </div>
     </div>
   );

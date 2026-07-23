@@ -2,7 +2,6 @@ import React from 'react';
 import { Search, Plus } from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
 import { InventoryCard } from './InventoryCard';
-import { StatSummary } from './StatSummary';
 
 export const InventoryList: React.FC = () => {
   const {
@@ -32,9 +31,6 @@ export const InventoryList: React.FC = () => {
 
   return (
     <div>
-      {/* Top Metric Summary */}
-      <StatSummary />
-
       {/* Filter and Search Bar */}
       <div className="filter-container">
         <div className="search-input-wrapper">

@@ -98,7 +98,7 @@ export function getExpiryStatus(expiryDateStr: string): ExpiryStatus {
   return {
     urgency: 'FRESH',
     daysRemaining: days,
-    label: `${days} days left`,
+    label: `Expires in ${days} days`,
   };
 }
 

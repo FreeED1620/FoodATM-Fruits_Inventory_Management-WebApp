@@ -2,22 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { useInventory } from '../../context/InventoryContext';
 import { getFutureDateString, getTodayString, isValidDateRange } from '../../utils/dateUtils';
-import { generateInventoryId, getNextSeqNumber } from '../../utils/idGenerator';
-import { POPULAR_FRUITS, WAREHOUSE_UNITS } from '../../utils/formatters';
 import { CategoryCode } from '../../types/inventory';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Check } from 'lucide-react';
+
+const FRUIT_GRID_OPTIONS = [
+  { name: 'Apple', icon: '🍎' },
+  { name: 'Banana', icon: '🍌' },
+  { name: 'Orange', icon: '🍊' },
+  { name: 'Mango', icon: '🥭' },
+  { name: 'Grapes', icon: '🍇' },
+  { name: 'Watermelon', icon: '🍉' },
+  { name: 'Pineapple', icon: '🍍' },
+  { name: 'Strawberry', icon: '🍓' },
+  { name: 'Peach', icon: '🍑' },
+  { name: 'Pear', icon: '🍐' },
+  { name: 'Kiwi', icon: '🥝' },
+  { name: 'Lemon', icon: '🍋' },
+];
 
 export const AddFruitModal: React.FC = () => {
   const { isAddModalOpen, closeAddModal, addFruit, items } = useInventory();
 
-  // Default values
   const today = getTodayString();
   const defaultExpiry = getFutureDateString(7);
 
-  const [fruitName, setFruitName] = useState<string>('');
+  const [fruitName, setFruitName] = useState<string>('Banana');
   const [quantity, setQuantity] = useState<string>('50');
-  const [unit, setUnit] = useState<string>('boxes');
-  // Allow string state so backspacing works naturally on mobile keyboards!
   const [batchInput, setBatchInput] = useState<string>('1');
   const [categoryCode, setCategoryCode] = useState<CategoryCode>('F');
   const [receivedDate, setReceivedDate] = useState<string>(today);
@@ -26,20 +36,15 @@ export const AddFruitModal: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  // Auto-calculated Inventory ID Preview
-  const [predictedId, setPredictedId] = useState<string>('B01-F001');
-
   useEffect(() => {
     if (isAddModalOpen) {
-      // Find highest batch number currently in system or default to 1
       const activeBatches = items.map(i => i.batchNumber);
       const latestBatch = activeBatches.length > 0 ? Math.max(...activeBatches) : 1;
       setBatchInput(String(latestBatch));
       setCategoryCode('F');
-      setUnit('boxes');
       setReceivedDate(getTodayString());
       setExpiryDate(getFutureDateString(7));
-      setFruitName('');
+      setFruitName('Banana');
       setQuantity('50');
       setFormError(null);
     }
@@ -47,24 +52,18 @@ export const AddFruitModal: React.FC = () => {
 
   const parsedBatchNumber = parseInt(batchInput.trim(), 10) || 1;
 
-  useEffect(() => {
-    const seq = getNextSeqNumber(items, parsedBatchNumber);
-    setPredictedId(generateInventoryId(parsedBatchNumber, categoryCode, seq));
-  }, [items, parsedBatchNumber, categoryCode]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
-    // Form Validations
     if (!fruitName.trim()) {
-      setFormError('Please enter or select a fruit name.');
+      setFormError('Please select or enter a fruit name.');
       return;
     }
 
     const numQty = parseFloat(quantity);
     if (isNaN(numQty) || numQty <= 0) {
-      setFormError('Quantity must be a positive number greater than 0.');
+      setFormError('Quantity must be a positive number.');
       return;
     }
 
@@ -74,12 +73,12 @@ export const AddFruitModal: React.FC = () => {
     }
 
     if (!receivedDate) {
-      setFormError('Please select a valid received date.');
+      setFormError('Please select a received date.');
       return;
     }
 
     if (!expiryDate) {
-      setFormError('Please select a valid expiry date.');
+      setFormError('Please select an expiry date.');
       return;
     }
 
@@ -108,77 +107,46 @@ export const AddFruitModal: React.FC = () => {
   return (
     <Modal isOpen={isAddModalOpen} onClose={closeAddModal} title="Add New Fruit Record">
       <form onSubmit={handleSubmit}>
-        {/* Auto Generated Inventory ID Preview */}
-        <div className="id-preview-box">
-          <div>
-            <div className="id-preview-label">Auto-Generated Inventory ID</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Sequential ID assigned automatically
-            </div>
-          </div>
-          <div className="id-preview-value">{predictedId}</div>
-        </div>
-
-        {/* Fruit Name Input - NO autoFocus so keyboard doesn't open automatically on mobile */}
-        <div className="form-group">
+        {/* Visual Fruit Grid Selection */}
+        <div className="form-group" style={{ marginBottom: '1.25rem' }}>
           <label className="form-label">Fruit Name *</label>
-          <input
-            type="text"
-            className="form-input"
-            placeholder="e.g. Apple, Banana, Orange..."
-            value={fruitName}
-            onChange={e => setFruitName(e.target.value)}
-            maxLength={50}
-            required
-          />
-
-          {/* Quick Suggestion Chips */}
-          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
-            {POPULAR_FRUITS.slice(0, 6).map(name => (
-              <button
-                key={name}
-                type="button"
-                className="chip-btn"
-                style={{ fontSize: '0.75rem', minHeight: '30px', padding: '0 0.5rem' }}
-                onClick={() => setFruitName(name)}
-              >
-                + {name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Category & Batch Number Row */}
-        <div className="form-row">
-          <div className="form-group">
-            <label className="form-label">Category *</label>
-            <select
-              className="form-select"
-              value={categoryCode}
-              onChange={e => setCategoryCode(e.target.value as CategoryCode)}
-            >
-              <option value="F">Fruit (F)</option>
-              <option value="V">Vegetables (V)</option>
-              <option value="D">Dry Fruits (D)</option>
-            </select>
+          <div className="fruit-selector-grid">
+            {FRUIT_GRID_OPTIONS.map(item => {
+              const isSelected = fruitName.toLowerCase() === item.name.toLowerCase();
+              return (
+                <button
+                  key={item.name}
+                  type="button"
+                  className={`fruit-tile ${isSelected ? 'selected' : ''}`}
+                  onClick={() => setFruitName(item.name)}
+                >
+                  <span className="fruit-tile-icon">{item.icon}</span>
+                  <span className="fruit-tile-name">{item.name}</span>
+                  {isSelected && (
+                    <div className="tile-check-badge">
+                      <Check size={12} strokeWidth={3} />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Batch # (Lorry) *</label>
+          {/* Optional custom fruit input */}
+          <div style={{ marginTop: '0.65rem' }}>
             <input
-              type="number"
-              min="1"
+              type="text"
               className="form-input"
-              value={batchInput}
-              onChange={e => setBatchInput(e.target.value)}
-              placeholder="e.g. 1"
-              maxLength={6}
+              placeholder="Or type custom fruit name..."
+              value={fruitName}
+              onChange={e => setFruitName(e.target.value)}
+              maxLength={50}
               required
             />
           </div>
         </div>
 
-        {/* Quantity & Unit Row */}
+        {/* Quantity & Batch Row */}
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">Quantity *</label>
@@ -189,24 +157,24 @@ export const AddFruitModal: React.FC = () => {
               className="form-input"
               value={quantity}
               onChange={e => setQuantity(e.target.value)}
+              placeholder="50"
               maxLength={8}
               required
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Unit *</label>
-            <select
-              className="form-select"
-              value={unit}
-              onChange={e => setUnit(e.target.value)}
-            >
-              {WAREHOUSE_UNITS.map(u => (
-                <option key={u.value} value={u.value}>
-                  {u.label}
-                </option>
-              ))}
-            </select>
+            <label className="form-label">Batch # *</label>
+            <input
+              type="number"
+              min="1"
+              className="form-input"
+              value={batchInput}
+              onChange={e => setBatchInput(e.target.value)}
+              placeholder="1"
+              maxLength={6}
+              required
+            />
           </div>
         </div>
 
@@ -243,7 +211,7 @@ export const AddFruitModal: React.FC = () => {
           </div>
         )}
 
-        {/* Submit Actions */}
+        {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
           <button
             type="button"
