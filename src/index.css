@@ -673,18 +673,33 @@ html.modal-open {
   border: 1px solid var(--border-color);
   border-top-left-radius: var(--radius-lg);
   border-top-right-radius: var(--radius-lg);
-  padding: 1.5rem;
-  max-height: 90vh;
+  padding: 1.25rem;
+  max-height: calc(100dvh - 1.5rem);
+  max-height: calc(100vh - 1.5rem);
   overflow-y: auto;
   touch-action: pan-y;
   overscroll-behavior: contain;
   box-shadow: 0 20px 50px rgba(225, 29, 72, 0.2);
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(225, 29, 72, 0.3) transparent;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 5px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: rgba(225, 29, 72, 0.3);
+  border-radius: 4px;
 }
 
 @media (min-width: 640px) {
   .modal-content {
     border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    max-height: calc(100dvh - 3rem);
+    max-height: calc(100vh - 3rem);
     animation: scaleUp 0.2s ease-out;
   }
 }
@@ -858,6 +873,24 @@ html.modal-open {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .fruit-selector-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.45rem;
+  }
+}
+
+@media (max-width: 340px) {
+  .fruit-selector-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .form-error {
