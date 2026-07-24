@@ -5,13 +5,7 @@ import { useInventory } from '../../context/InventoryContext';
 import { getFutureDateString, getTodayString, isValidDateRange } from '../../utils/dateUtils';
 import { CategoryCode } from '../../types/inventory';
 import { Sparkles, Check } from 'lucide-react';
-
-const FRUIT_OPTIONS = [
-  'Apple', 'Banana', 'Orange', 'Mango', 'Grapes', 'Watermelon',
-  'Pineapple', 'Strawberry', 'Peach', 'Pear', 'Kiwi', 'Lemon',
-  'Cherry', 'Avocado', 'Coconut', 'Papaya', 'Pomegranate',
-  'Blueberry', 'Tomato', 'Dragon Fruit',
-];
+import { FruitImageService, FruitImageRecord } from '../../services/fruitImageService';
 
 export const AddFruitModal: React.FC = () => {
   const { isAddModalOpen, closeAddModal, addFruit, items } = useInventory();
@@ -28,6 +22,7 @@ export const AddFruitModal: React.FC = () => {
 
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [fruitOptions, setFruitOptions] = useState<FruitImageRecord[]>([]);
 
   useEffect(() => {
     if (isAddModalOpen) {
@@ -40,6 +35,10 @@ export const AddFruitModal: React.FC = () => {
       setFruitName('Banana');
       setQuantity('50');
       setFormError(null);
+
+      FruitImageService.getAll()
+        .then(data => setFruitOptions(data))
+        .catch(() => setFruitOptions([]));
     }
   }, [isAddModalOpen, items]);
 
@@ -103,27 +102,33 @@ export const AddFruitModal: React.FC = () => {
         {/* Scrollable Fruit Image Strip */}
         <div className="form-group" style={{ marginBottom: '1.25rem' }}>
           <label className="form-label">Fruit Name *</label>
-          <div className="fruit-scroll-strip">
-            {FRUIT_OPTIONS.map(name => {
-              const isSelected = fruitName.toLowerCase() === name.toLowerCase();
-              return (
-                <button
-                  key={name}
-                  type="button"
-                  className={`fruit-tile ${isSelected ? 'selected' : ''}`}
-                  onClick={() => setFruitName(name)}
-                >
-                  <FruitImage fruitName={name} size={40} className="fruit-tile-img" />
-                  <span className="fruit-tile-name">{name}</span>
-                  {isSelected && (
-                    <div className="tile-check-badge">
-                      <Check size={12} strokeWidth={3} />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+          {fruitOptions.length > 0 ? (
+            <div className="fruit-scroll-strip">
+              {fruitOptions.map(fruit => {
+                const isSelected = fruitName.toLowerCase() === fruit.fruitName.toLowerCase();
+                return (
+                  <button
+                    key={fruit.fruitName}
+                    type="button"
+                    className={`fruit-tile ${isSelected ? 'selected' : ''}`}
+                    onClick={() => setFruitName(fruit.fruitName)}
+                  >
+                    <FruitImage fruitName={fruit.fruitName} size={40} className="fruit-tile-img" />
+                    <span className="fruit-tile-name">{fruit.fruitName}</span>
+                    {isSelected && (
+                      <div className="tile-check-badge">
+                        <Check size={12} strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+              No fruits defined yet. Admin can add them in Manage Fruits.
+            </p>
+          )}
 
           {/* Optional custom fruit input */}
           <div style={{ marginTop: '0.65rem' }}>

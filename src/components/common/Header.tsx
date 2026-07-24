@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { Menu, Plus, X } from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
-import { useShift } from '../../context/ShiftContext';
+import { useSession } from '../../context/SessionContext';
 import { useTheme } from '../../context/ThemeContext';
 import { PageView } from '../../App';
 import { ConfirmModal } from './ConfirmModal';
@@ -14,8 +15,9 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const { openAddModal } = useInventory();
-  const { currentShift, endShift } = useShift();
+  const { currentSession, endSession } = useSession();
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
 
@@ -42,7 +44,8 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
 
   const confirmEndShift = () => {
     setShowEndConfirm(false);
-    endShift();
+    localStorage.removeItem('foodatm_admin_auth');
+    endSession();
   };
 
   const handleNavigate = (page: PageView) => {
@@ -68,8 +71,8 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
         </div>
 
         <div className="header-actions">
-          {currentShift !== null && (
-            <span className="shift-badge">Shift {currentShift}</span>
+          {currentSession && (
+            <span className="shift-badge">{currentSession.userName}</span>
           )}
 
           <button
@@ -111,9 +114,9 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             </div>
 
             <div className="hamburger-panel-body">
-              {currentShift !== null && (
+              {currentSession && (
                 <div className="hamburger-shift-info">
-                  Active Shift: <strong>Shift {currentShift}</strong>
+                  Active: <strong>{currentSession.userName}</strong> since {new Date(currentSession.startedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                 </div>
               )}
 
@@ -134,6 +137,24 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
               </button>
 
               <button
+                className={`hamburger-menu-item ${currentPage === 'expired' ? 'active' : ''}`}
+                onClick={() => handleNavigate('expired')}
+                type="button"
+              >
+                🗓️ Expired Items
+              </button>
+
+              {currentSession?.userName === 'Admin' && localStorage.getItem('foodatm_admin_auth') === 'true' && (
+                <button
+                  className="hamburger-menu-item"
+                  onClick={() => { closeMenu(); navigate('/admin'); }}
+                  type="button"
+                >
+                  🛡️ Admin Dashboard
+                </button>
+              )}
+
+              <button
                 className="hamburger-menu-item"
                 onClick={handleToggleTheme}
                 type="button"
@@ -150,7 +171,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                 onClick={handleEndShift}
                 type="button"
               >
-                End Shift
+                End Session
               </button>
             </div>
           </div>
@@ -163,8 +184,8 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
           isOpen={showEndConfirm}
           onClose={() => setShowEndConfirm(false)}
           onConfirm={confirmEndShift}
-          title="End Shift?"
-          message="Are you sure you want to end this shift?"
+          title="End Session?"
+          message="Are you sure you want to end this session?"
         />,
         document.body
       )}

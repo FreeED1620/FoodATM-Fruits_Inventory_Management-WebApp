@@ -137,3 +137,28 @@ CREATE TRIGGER update_inventory_items_modtime
 BEFORE UPDATE ON public.inventory_items
 FOR EACH ROW
 EXECUTE FUNCTION update_modified_column();
+
+-- 7. Fruit Images Table (Stores mapping between fruit names and public image URLs)
+CREATE TABLE IF NOT EXISTS public.fruit_images (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    fruit_name VARCHAR(100) NOT NULL UNIQUE,
+    image_url TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS on fruit_images
+ALTER TABLE public.fruit_images ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access to fruit_images table
+CREATE POLICY "Allow public read on fruit_images"
+ON public.fruit_images FOR SELECT
+TO public
+USING (true);
+
+-- Allow public/authenticated insert & update on fruit_images table
+CREATE POLICY "Allow public write on fruit_images"
+ON public.fruit_images FOR ALL
+TO public
+USING (true)
+WITH CHECK (true);
+

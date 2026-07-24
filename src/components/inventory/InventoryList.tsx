@@ -22,8 +22,8 @@ export const InventoryList: React.FC<InventoryListProps> = ({ onNavigate }) => {
     openAddModal,
   } = useInventory();
 
-  // Extract unique active batch numbers from all items
-  const uniqueBatches = Array.from(new Set(items.map(i => i.batchNumber))).sort((a, b) => a - b);
+  // Extract unique active batch numbers from items with remaining quantity
+  const uniqueBatches = Array.from(new Set(items.filter(i => i.quantity > 0).map(i => i.batchNumber))).sort((a, b) => a - b);
 
   if (loading && items.length === 0) {
     return (
@@ -111,10 +111,12 @@ export const InventoryList: React.FC<InventoryListProps> = ({ onNavigate }) => {
               ? 'No fruit items match your current search or filter criteria.'
               : 'The fruit warehouse inventory is currently empty. Tap the button below to register a fruit entry.'}
           </p>
-          <button className="btn btn-primary" onClick={openAddModal} type="button">
-            <Plus size={18} />
-            <span>Add First Fruit Record</span>
-          </button>
+          {!searchQuery && activeBatchFilter === null && activeExpiryFilter === 'ALL' && (
+            <button className="btn btn-primary" onClick={openAddModal} type="button">
+              <Plus size={18} />
+              <span>Add First Fruit Record</span>
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getFruitIcon } from '../../utils/formatters';
-
-const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp'];
+import { FruitImageService } from '../../services/fruitImageService';
 
 interface FruitImageProps {
   fruitName: string;
@@ -16,12 +15,40 @@ export const FruitImage: React.FC<FruitImageProps> = ({
   className = '',
   style = {},
 }) => {
-  const [extIndex, setExtIndex] = useState(0);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imgFailed, setImgFailed] = useState(false);
-  const emoji = getFruitIcon(fruitName);
-  const name = fruitName.toLowerCase().trim().replace(/\s+/g, '-');
+  const [loading, setLoading] = useState(true);
 
-  if (imgFailed || !fruitName.trim()) {
+  const emoji = getFruitIcon(fruitName);
+
+  useEffect(() => {
+    if (!fruitName || !fruitName.trim()) {
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setImgFailed(false);
+
+    FruitImageService.getUrlByName(fruitName)
+      .then(url => {
+        if (!cancelled) {
+          setImageUrl(url);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.warn(`[FruitImage] Failed to get URL for "${fruitName}":`, err);
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fruitName]);
+
+  if (!fruitName.trim() || (!imageUrl && !loading)) {
     return (
       <span
         className={className}
@@ -43,11 +70,31 @@ export const FruitImage: React.FC<FruitImageProps> = ({
     );
   }
 
-  const imgUrl = `/fruit-images/${name}.${IMAGE_EXTENSIONS[extIndex]}`;
+  if (loading || !imageUrl || imgFailed) {
+    return (
+      <span
+        className={className}
+        style={{
+          fontSize: size * 0.7,
+          lineHeight: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: size,
+          height: size,
+          ...style,
+        }}
+        role="img"
+        aria-label={fruitName}
+      >
+        {emoji}
+      </span>
+    );
+  }
 
   return (
     <img
-      src={imgUrl}
+      src={imageUrl}
       alt={fruitName}
       className={className}
       loading="lazy"
@@ -57,13 +104,7 @@ export const FruitImage: React.FC<FruitImageProps> = ({
         objectFit: 'contain',
         ...style,
       }}
-      onError={() => {
-        if (extIndex < IMAGE_EXTENSIONS.length - 1) {
-          setExtIndex(extIndex + 1);
-        } else {
-          setImgFailed(true);
-        }
-      }}
+      onError={() => setImgFailed(true)}
     />
   );
 };

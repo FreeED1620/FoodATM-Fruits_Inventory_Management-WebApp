@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { ActionInput, AddFruitInput, InventoryItem, InventoryLog, InventoryStats } from '../types/inventory';
 import { InventoryService } from '../services/inventoryService';
 import { getDaysUntil, sortByNearestExpiry } from '../utils/dateUtils';
-import { useShift } from './ShiftContext';
+import { useSession } from './SessionContext';
 
 interface ToastState {
   id: string;
@@ -45,7 +45,7 @@ interface InventoryContextType {
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
 
 export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentShift } = useShift();
+  const { currentSession } = useSession();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [logs, setLogs] = useState<InventoryLog[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -119,12 +119,12 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [refreshItems]);
 
   const addFruit = async (input: AddFruitInput): Promise<boolean> => {
-    if (currentShift === null) {
-      showToast('No active shift. Please select a shift first.', 'error');
+    if (!currentSession) {
+      showToast('No active session. Please start a session first.', 'error');
       return false;
     }
     try {
-      const createdItem = await InventoryService.addFruit(input, currentShift);
+      const createdItem = await InventoryService.addFruit(input, currentSession.sessionId);
       setItems(prev => sortByNearestExpiry([createdItem, ...prev]));
       showToast(`Added ${createdItem.fruitName} (${createdItem.inventoryId}) successfully!`, 'success');
       return true;
@@ -135,12 +135,12 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const recordItemAction = async (input: ActionInput): Promise<boolean> => {
-    if (currentShift === null) {
-      showToast('No active shift. Please select a shift first.', 'error');
+    if (!currentSession) {
+      showToast('No active session. Please start a session first.', 'error');
       return false;
     }
     try {
-      const { updatedItem } = await InventoryService.recordAction(input, currentShift);
+      const { updatedItem } = await InventoryService.recordAction(input, currentSession.sessionId);
       setItems(prev => sortByNearestExpiry(prev.map(i => i.id === updatedItem.id ? updatedItem : i)));
       showToast(`Action recorded for ${updatedItem.inventoryId} (${input.action})`, 'success');
       return true;

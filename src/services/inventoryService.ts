@@ -32,7 +32,7 @@ export class InventoryService {
     return sortByNearestExpiry(data.map(item => this.mapFromSupabase(item)));
   }
 
-  static async addFruit(input: AddFruitInput, shiftNumber: number): Promise<InventoryItem> {
+  static async addFruit(input: AddFruitInput, sessionId: string): Promise<InventoryItem> {
     const client = requireSupabase();
     const existingItems = await this.getItems();
 
@@ -40,25 +40,19 @@ export class InventoryService {
     const categoryCode = input.categoryCode || 'F';
     const inventoryId = generateInventoryId(input.batchNumber, categoryCode, seqNumber);
 
-    const newItem: InventoryItem = {
-      id: '',
-      inventoryId,
-      fruitName: input.fruitName.trim(),
-      categoryCode,
+    const payload = {
+      inventory_id: inventoryId,
+      fruit_name: input.fruitName.trim(),
+      category_code: categoryCode,
       quantity: Math.round(Number(input.quantity)),
-      unit: 'boxes',
-      batchNumber: Number(input.batchNumber),
-      seqNumber,
-      receivedDate: input.receivedDate,
-      expiryDate: input.expiryDate,
+      batch_number: Number(input.batchNumber),
+      seq_number: seqNumber,
+      received_date: input.receivedDate,
+      expiry_date: input.expiryDate,
       status: 'AVAILABLE',
-      addedInShift: shiftNumber,
-      createdAt: new Date().toISOString(),
+      session_id: sessionId,
     };
 
-    const payload = this.mapToSupabase(newItem);
-    delete payload.id;
-    payload.added_in_shift = shiftNumber;
     const { data, error } = await client
       .from('inventory_items')
       .insert([payload])
@@ -73,7 +67,7 @@ export class InventoryService {
     return this.mapFromSupabase(data);
   }
 
-  static async recordAction(input: ActionInput, shiftNumber: number): Promise<{ updatedItem: InventoryItem; log: InventoryLog }> {
+  static async recordAction(input: ActionInput, sessionId: string): Promise<{ updatedItem: InventoryItem; log: InventoryLog }> {
     const client = requireSupabase();
     const items = await this.getItems();
     const targetItem = items.find(i => i.id === input.itemId);
@@ -88,26 +82,6 @@ export class InventoryService {
 
     const newQuantity = Math.max(0, targetItem.quantity - Math.round(input.quantity));
     const newStatus = newQuantity === 0 ? (input.action === 'SELL' ? 'SOLD' : input.action === 'DISTRIBUTE' ? 'DISTRIBUTED' : 'TRANSFERRED') : targetItem.status;
-
-    const updatedItem: InventoryItem = {
-      ...targetItem,
-      quantity: newQuantity,
-      status: newStatus,
-      updatedAt: new Date().toISOString(),
-    };
-
-    const newLog: InventoryLog = {
-      id: '',
-      itemId: targetItem.id,
-      inventoryId: targetItem.inventoryId,
-      action: input.action,
-      quantity: Math.round(input.quantity),
-      recipient: input.action === 'TRANSFER' ? (input.recipient || null) : null,
-      shiftNumber,
-      reversed: false,
-      reversedAt: null,
-      createdAt: new Date().toISOString(),
-    };
 
     const { error: updateError } = await client
       .from('inventory_items')
@@ -126,12 +100,32 @@ export class InventoryService {
         action: input.action,
         quantity_affected: Math.round(input.quantity),
         recipient_destination: input.action === 'TRANSFER' ? (input.recipient || null) : null,
-        shift_number: shiftNumber,
+        session_id: sessionId,
       }]);
 
     if (logError) {
       throw new Error(`Failed to record action log: ${logError.message}`);
     }
+
+    const updatedItem: InventoryItem = {
+      ...targetItem,
+      quantity: newQuantity,
+      status: newStatus,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const newLog: InventoryLog = {
+      id: '',
+      itemId: targetItem.id,
+      inventoryId: targetItem.inventoryId,
+      action: input.action,
+      quantity: Math.round(input.quantity),
+      recipient: input.action === 'TRANSFER' ? (input.recipient || null) : null,
+      reversed: false,
+      reversedAt: null,
+      createdAt: new Date().toISOString(),
+      sessionId,
+    };
 
     return { updatedItem, log: newLog };
   }
@@ -156,11 +150,11 @@ export class InventoryService {
       action: row.action,
       quantity: Number(row.quantity_affected),
       recipient: row.recipient_destination,
-      shiftNumber: row.shift_number || 1,
       reversed: row.reversed || false,
       reversedAt: row.reversed_at || null,
       createdAt: row.created_at,
       fruitName: row.inventory_items?.fruit_name || 'Unknown',
+      sessionId: row.session_id || null,
     }));
   }
 
@@ -218,6 +212,63 @@ export class InventoryService {
     }
   }
 
+  static async getUserActivityData(): Promise<UserSessionSummary[]> {
+    const client = requireSupabase();
+
+    // 1. Fetch sessions
+    const { data: sessions, error: sessionError } = await client
+      .from('sessions')
+      .select('*')
+      .order('started_at', { ascending: false });
+
+    if (sessionError) {
+      throw new Error(`Failed to fetch sessions: ${sessionError.message}`);
+    }
+
+    // 2. Fetch all inventory items
+    const allItems = await this.getItems();
+
+    // 3. Fetch all logs
+    const allLogs = await this.getLogs();
+
+    const summaries: UserSessionSummary[] = (sessions || []).map(sess => {
+      const startTime = new Date(sess.started_at).getTime();
+      const endTime = sess.ended_at ? new Date(sess.ended_at).getTime() : Date.now();
+
+      // Match items added in this session by session_id or timestamp window
+      const itemsAdded = allItems.filter(item => {
+        if (item.sessionId && item.sessionId === sess.id) return true;
+        if (item.createdAt) {
+          const itemTime = new Date(item.createdAt).getTime();
+          return itemTime >= startTime - 1000 && itemTime <= endTime + 1000;
+        }
+        return false;
+      });
+
+      // Match logs committed in this session by session_id or timestamp window
+      const logsCommitted = allLogs.filter(log => {
+        if (log.sessionId && log.sessionId === sess.id) return true;
+        if (log.createdAt) {
+          const logTime = new Date(log.createdAt).getTime();
+          return logTime >= startTime - 1000 && logTime <= endTime + 1000;
+        }
+        return false;
+      });
+
+      return {
+        sessionId: sess.id,
+        userName: sess.user_name,
+        sessionNumber: sess.session_number,
+        startedAt: sess.started_at,
+        endedAt: sess.ended_at,
+        itemsAdded,
+        logsCommitted,
+      };
+    });
+
+    return summaries;
+  }
+
   private static mapFromSupabase(row: any): InventoryItem {
     return {
       id: row.id,
@@ -231,24 +282,20 @@ export class InventoryService {
       receivedDate: row.received_date,
       expiryDate: row.expiry_date,
       status: row.status,
-      addedInShift: row.added_in_shift || 1,
+      sessionId: row.session_id || null,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
   }
-
-  private static mapToSupabase(item: InventoryItem): any {
-    return {
-      id: item.id,
-      inventory_id: item.inventoryId,
-      fruit_name: item.fruitName,
-      category_code: item.categoryCode,
-      quantity: item.quantity,
-      batch_number: item.batchNumber,
-      seq_number: item.seqNumber,
-      received_date: item.receivedDate,
-      expiry_date: item.expiryDate,
-      status: item.status,
-    };
-  }
 }
+
+export interface UserSessionSummary {
+  sessionId: string;
+  userName: string;
+  sessionNumber: number;
+  startedAt: string;
+  endedAt: string | null;
+  itemsAdded: InventoryItem[];
+  logsCommitted: InventoryLog[];
+}
+

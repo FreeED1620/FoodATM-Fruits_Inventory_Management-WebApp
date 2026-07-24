@@ -6,17 +6,17 @@ export type ActionType = 'SELL' | 'DISTRIBUTE' | 'TRANSFER';
 
 export interface InventoryItem {
   id: string;
-  inventoryId: string; // e.g. "B01-F001"
+  inventoryId: string;
   fruitName: string;
   categoryCode: CategoryCode;
   quantity: number;
-  unit: string; // "kg", "boxes", "crates"
+  unit: string;
   batchNumber: number;
   seqNumber: number;
-  receivedDate: string; // YYYY-MM-DD
-  expiryDate: string; // YYYY-MM-DD
+  receivedDate: string;
+  expiryDate: string;
   status: InventoryStatus;
-  addedInShift: number;
+  sessionId: string | null;
   createdAt: string;
   updatedAt?: string;
 }
@@ -36,7 +36,7 @@ export interface ActionInput {
   inventoryId: string;
   action: ActionType;
   quantity: number;
-  recipient?: string; // Only required for TRANSFER (branch name)
+  recipient?: string;
 }
 
 export interface InventoryLog {
@@ -45,8 +45,8 @@ export interface InventoryLog {
   inventoryId: string;
   action: ActionType;
   quantity: number;
-  recipient: string | null; // Branch name for TRANSFER, null for SELL/DISTRIBUTE
-  shiftNumber: number;
+  recipient: string | null;
+  sessionId: string | null;
   reversed: boolean;
   reversedAt: string | null;
   createdAt: string;
