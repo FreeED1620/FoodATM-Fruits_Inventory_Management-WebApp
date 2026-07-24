@@ -168,6 +168,9 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Exclude zero-quantity or non-available items unless specified
       if (item.quantity <= 0) return false;
 
+      // Exclude expired items — they live on the Expired page
+      if (getDaysUntil(item.expiryDate) < 0) return false;
+
       // Search match
       const query = searchQuery.toLowerCase().trim();
       const matchesSearch = !query || 

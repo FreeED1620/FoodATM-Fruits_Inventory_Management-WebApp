@@ -6,12 +6,13 @@ import { ShiftPicker } from './components/ShiftPicker';
 import { Header } from './components/common/Header';
 import { InventoryList } from './components/inventory/InventoryList';
 import { HistoryPage } from './components/inventory/HistoryPage';
+import { ExpiredItemsPage } from './components/inventory/ExpiredItemsPage';
 import { AddFruitModal } from './components/inventory/AddFruitModal';
 import { ActionModal } from './components/inventory/ActionModal';
 import { Toast } from './components/common/Toast';
 import { Plus } from 'lucide-react';
 
-type PageView = 'inventory' | 'history';
+export type PageView = 'inventory' | 'history' | 'expired';
 
 const AppContent: React.FC = () => {
   const { openAddModal } = useInventory();
@@ -22,8 +23,9 @@ const AppContent: React.FC = () => {
       <Header onNavigate={setPage} currentPage={page} />
 
       <main className="main-content">
-        {page === 'inventory' && <InventoryList />}
+        {page === 'inventory' && <InventoryList onNavigate={setPage} />}
         {page === 'history' && <HistoryPage onBack={() => setPage('inventory')} />}
+        {page === 'expired' && <ExpiredItemsPage onBack={() => setPage('inventory')} />}
       </main>
 
       {page === 'inventory' && (

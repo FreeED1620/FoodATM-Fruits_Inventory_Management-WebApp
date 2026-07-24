@@ -1,9 +1,14 @@
 import React from 'react';
 import { Search, Plus } from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
+import { PageView } from '../../App';
 import { InventoryCard } from './InventoryCard';
 
-export const InventoryList: React.FC = () => {
+interface InventoryListProps {
+  onNavigate: (page: PageView) => void;
+}
+
+export const InventoryList: React.FC<InventoryListProps> = ({ onNavigate }) => {
   const {
     filteredItems,
     items,
@@ -68,10 +73,10 @@ export const InventoryList: React.FC = () => {
           </button>
 
           <button
-            className={`chip-btn ${activeExpiryFilter === 'EXPIRED' ? 'active' : ''}`}
-            onClick={() => setActiveExpiryFilter(activeExpiryFilter === 'EXPIRED' ? 'ALL' : 'EXPIRED')}
+            className="chip-btn"
+            onClick={() => onNavigate('expired')}
             type="button"
-            style={activeExpiryFilter === 'EXPIRED' ? { background: '#991b1b', borderColor: '#991b1b' } : {}}
+            style={{ background: '#f59e0b', borderColor: '#f59e0b', color: '#ffffff' }}
           >
             🚫 Expired
           </button>

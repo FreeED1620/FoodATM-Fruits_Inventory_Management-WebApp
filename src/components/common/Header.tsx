@@ -4,9 +4,8 @@ import { Menu, Plus, X } from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
 import { useShift } from '../../context/ShiftContext';
 import { useTheme } from '../../context/ThemeContext';
+import { PageView } from '../../App';
 import { ConfirmModal } from './ConfirmModal';
-
-type PageView = 'inventory' | 'history';
 
 interface HeaderProps {
   onNavigate: (page: PageView) => void;
