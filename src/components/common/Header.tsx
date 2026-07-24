@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Menu, Plus, X } from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
 import { useShift } from '../../context/ShiftContext';
+import { useTheme } from '../../context/ThemeContext';
 import { ConfirmModal } from './ConfirmModal';
 
 type PageView = 'inventory' | 'history';
@@ -15,6 +16,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const { openAddModal } = useInventory();
   const { currentShift, endShift } = useShift();
+  const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
 
@@ -47,6 +49,10 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const handleNavigate = (page: PageView) => {
     closeMenu();
     onNavigate(page);
+  };
+
+  const handleToggleTheme = () => {
+    toggleTheme();
   };
 
   return (
@@ -126,6 +132,18 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                 type="button"
               >
                 📋 Transaction History
+              </button>
+
+              <button
+                className="hamburger-menu-item"
+                onClick={handleToggleTheme}
+                type="button"
+              >
+                {theme === 'light' ? (
+                  <>🌙 Dark Theme</>
+                ) : (
+                  <>☀️ Light Theme</>
+                )}
               </button>
 
               <button

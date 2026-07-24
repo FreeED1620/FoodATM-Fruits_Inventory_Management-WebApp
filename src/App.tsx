@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShiftProvider, useShift } from './context/ShiftContext';
 import { InventoryProvider, useInventory } from './context/InventoryContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { ShiftPicker } from './components/ShiftPicker';
 import { Header } from './components/common/Header';
 import { InventoryList } from './components/inventory/InventoryList';
@@ -60,9 +61,11 @@ const ShiftGate: React.FC = () => {
 
 export function App() {
   return (
-    <ShiftProvider>
-      <ShiftGate />
-    </ShiftProvider>
+    <ThemeProvider>
+      <ShiftProvider>
+        <ShiftGate />
+      </ShiftProvider>
+    </ThemeProvider>
   );
 }
 
