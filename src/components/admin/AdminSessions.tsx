@@ -13,6 +13,7 @@ export const AdminSessions: React.FC = () => {
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [endingId, setEndingId] = useState<string | null>(null);
 
   const fetchSessions = async () => {
     setLoading(true);
@@ -40,6 +41,22 @@ export const AdminSessions: React.FC = () => {
   useEffect(() => {
     fetchSessions();
   }, []);
+
+  const handleEndSession = async (sessionId: string) => {
+    if (!isSupabaseConfigured || !supabase) return;
+    setEndingId(sessionId);
+    const { error: updateError } = await supabase
+      .from('sessions')
+      .update({ ended_at: new Date().toISOString() })
+      .eq('id', sessionId)
+      .is('ended_at', null);
+    if (updateError) {
+      setError(updateError.message);
+    } else {
+      setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, ended_at: new Date().toISOString() } : s));
+    }
+    setEndingId(null);
+  };
 
   const formatDuration = (started: string, ended: string | null) => {
     const start = new Date(started);
@@ -82,6 +99,7 @@ export const AdminSessions: React.FC = () => {
                 <th>Ended</th>
                 <th>Duration</th>
                 <th>Status</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -96,6 +114,19 @@ export const AdminSessions: React.FC = () => {
                     <span className={`admin-badge ${s.ended_at ? 'badge-ended' : 'badge-active'}`}>
                       {s.ended_at ? 'Ended' : 'Active'}
                     </span>
+                  </td>
+                  <td>
+                    {!s.ended_at && s.user_name !== 'Admin' && (
+                      <button
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem' }}
+                        onClick={() => handleEndSession(s.id)}
+                        disabled={endingId === s.id}
+                        type="button"
+                      >
+                        {endingId === s.id ? 'Ending...' : 'End'}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

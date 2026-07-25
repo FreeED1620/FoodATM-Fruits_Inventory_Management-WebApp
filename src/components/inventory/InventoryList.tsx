@@ -76,7 +76,6 @@ export const InventoryList: React.FC<InventoryListProps> = ({ onNavigate }) => {
             className="chip-btn"
             onClick={() => onNavigate('expired')}
             type="button"
-            style={{ background: '#f59e0b', borderColor: '#f59e0b', color: '#ffffff' }}
           >
             🚫 Expired
           </button>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSession } from '../context/SessionContext';
+import { isSupabaseConfigured, supabase } from '../services/supabaseClient';
 import { LogIn, Shield } from 'lucide-react';
 
 const USERS = ['User-1', 'User-2', 'User-3', 'User-4'];
@@ -16,6 +17,17 @@ export const SessionPicker: React.FC = () => {
   const [adminError, setAdminError] = useState<string | null>(null);
   const [adminLoading, setAdminLoading] = useState(false);
 
+  const checkActiveSession = async (userName: string): Promise<boolean> => {
+    if (!isSupabaseConfigured || !supabase) return false;
+    const { data } = await supabase
+      .from('sessions')
+      .select('id')
+      .eq('user_name', userName)
+      .is('ended_at', null)
+      .limit(1);
+    return !!(data && data.length > 0);
+  };
+
   const handleStart = async () => {
     if (!selectedUser) {
       setError('Please select a user.');
@@ -25,6 +37,12 @@ export const SessionPicker: React.FC = () => {
     setStarting(true);
     setError(null);
     try {
+      const isActive = await checkActiveSession(selectedUser);
+      if (isActive) {
+        setError('This user is already active on another device.');
+        setStarting(false);
+        return;
+      }
       await startSession(selectedUser);
     } catch (err: any) {
       setError(err.message || 'Failed to start session');
