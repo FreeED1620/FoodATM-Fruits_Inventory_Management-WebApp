@@ -169,7 +169,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                 onClick={handleEndShift}
                 type="button"
               >
-                End Session
+                {currentSession?.userName === "Admin" ? "Logout" : "End Session"}
               </button>
             </div>
           </div>
@@ -182,8 +182,8 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
           isOpen={showEndConfirm}
           onClose={() => setShowEndConfirm(false)}
           onConfirm={confirmEndShift}
-          title="End Session?"
-          message="Are you sure you want to end this session?"
+          title={currentSession?.userName === "Admin" ? "Logout?" : "End Session?"}
+          message={currentSession?.userName === "Admin" ? "Are you sure you want to logout?" : "Are you sure you want to end this session?"}
         />,
         document.body,
       )}

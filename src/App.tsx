@@ -60,6 +60,10 @@ const InventoryApp: React.FC = () => {
 const InventoryGate: React.FC = () => {
   const { currentSession } = useSession();
 
+  if (currentSession?.userName === 'Admin') {
+    return <Navigate to="/admin" replace />;
+  }
+
   if (!currentSession) {
     return <SessionPicker />;
   }

@@ -78,7 +78,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
 
           <button className="admin-nav-item danger" onClick={handleLogout} type="button">
             <LogOut size={18} />
-            <span>End Session</span>
+            <span>Logout</span>
           </button>
         </div>
       </aside>
