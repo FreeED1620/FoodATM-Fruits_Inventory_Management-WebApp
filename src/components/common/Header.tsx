@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
-import { Menu, Plus, X } from 'lucide-react';
-import { useInventory } from '../../context/InventoryContext';
-import { useSession } from '../../context/SessionContext';
-import { useTheme } from '../../context/ThemeContext';
-import { PageView } from '../../App';
-import { ConfirmModal } from './ConfirmModal';
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
+import { Menu, Plus, X } from "lucide-react";
+import { useInventory } from "../../context/InventoryContext";
+import { useSession } from "../../context/SessionContext";
+import { useTheme } from "../../context/ThemeContext";
+import { PageView } from "../../App";
+import { ConfirmModal } from "./ConfirmModal";
 
 interface HeaderProps {
   onNavigate: (page: PageView) => void;
@@ -23,15 +23,15 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
 
   useEffect(() => {
     if (menuOpen) {
-      document.body.classList.add('menu-open');
-      document.documentElement.classList.add('menu-open');
+      document.body.classList.add("menu-open");
+      document.documentElement.classList.add("menu-open");
     } else {
-      document.body.classList.remove('menu-open');
-      document.documentElement.classList.remove('menu-open');
+      document.body.classList.remove("menu-open");
+      document.documentElement.classList.remove("menu-open");
     }
     return () => {
-      document.body.classList.remove('menu-open');
-      document.documentElement.classList.remove('menu-open');
+      document.body.classList.remove("menu-open");
+      document.documentElement.classList.remove("menu-open");
     };
   }, [menuOpen]);
 
@@ -44,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
 
   const confirmEndShift = () => {
     setShowEndConfirm(false);
-    localStorage.removeItem('foodatm_admin_auth');
+    localStorage.removeItem("foodatm_admin_auth");
     endSession();
   };
 
@@ -62,11 +62,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
       <div className="header-content">
         <div className="brand-section">
           <div className="brand-icon-wrapper" title="FoodATM Warehouse">
-            🍏
-          </div>
-          <div className="brand-title-group">
-            <h1>FoodATM</h1>
-            <p>Fruit Warehouse Inventory</p>
+            <img src="/logo2.png" alt="FoodATM Logo" className="brand-logo" />
           </div>
         </div>
 
@@ -83,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             <Plus size={20} />
             <span>Add Fruit</span>
           </button>
-          
+
           <button
             className="header-menu-btn"
             type="button"
@@ -97,11 +93,9 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
 
       {createPortal(
         <>
-          {menuOpen && (
-            <div className="hamburger-overlay" />
-          )}
+          {menuOpen && <div className="hamburger-overlay" />}
 
-          <div className={`hamburger-panel ${menuOpen ? 'open' : ''}`}>
+          <div className={`hamburger-panel ${menuOpen ? "open" : ""}`}>
             <div className="hamburger-panel-header">
               <h2>Menu</h2>
               <button
@@ -116,54 +110,58 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             <div className="hamburger-panel-body">
               {currentSession && (
                 <div className="hamburger-shift-info">
-                  Active: <strong>{currentSession.userName}</strong> since {new Date(currentSession.startedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                  Active: <strong>{currentSession.userName}</strong> since{" "}
+                  {new Date(currentSession.startedAt).toLocaleTimeString(
+                    "en-US",
+                    { hour: "numeric", minute: "2-digit", hour12: true },
+                  )}
                 </div>
               )}
 
               <button
-                className={`hamburger-menu-item ${currentPage === 'inventory' ? 'active' : ''}`}
-                onClick={() => handleNavigate('inventory')}
+                className={`hamburger-menu-item ${currentPage === "inventory" ? "active" : ""}`}
+                onClick={() => handleNavigate("inventory")}
                 type="button"
               >
                 📦 Inventory
               </button>
 
               <button
-                className={`hamburger-menu-item ${currentPage === 'history' ? 'active' : ''}`}
-                onClick={() => handleNavigate('history')}
+                className={`hamburger-menu-item ${currentPage === "history" ? "active" : ""}`}
+                onClick={() => handleNavigate("history")}
                 type="button"
               >
                 📋 Transaction History
               </button>
 
               <button
-                className={`hamburger-menu-item ${currentPage === 'expired' ? 'active' : ''}`}
-                onClick={() => handleNavigate('expired')}
+                className={`hamburger-menu-item ${currentPage === "expired" ? "active" : ""}`}
+                onClick={() => handleNavigate("expired")}
                 type="button"
               >
                 🗓️ Expired Items
               </button>
 
-              {currentSession?.userName === 'Admin' && localStorage.getItem('foodatm_admin_auth') === 'true' && (
-                <button
-                  className="hamburger-menu-item"
-                  onClick={() => { closeMenu(); navigate('/admin'); }}
-                  type="button"
-                >
-                  🛡️ Admin Dashboard
-                </button>
-              )}
+              {currentSession?.userName === "Admin" &&
+                localStorage.getItem("foodatm_admin_auth") === "true" && (
+                  <button
+                    className="hamburger-menu-item"
+                    onClick={() => {
+                      closeMenu();
+                      navigate("/admin");
+                    }}
+                    type="button"
+                  >
+                    🛡️ Admin Dashboard
+                  </button>
+                )}
 
               <button
                 className="hamburger-menu-item"
                 onClick={handleToggleTheme}
                 type="button"
               >
-                {theme === 'light' ? (
-                  <>🌙 Dark Theme</>
-                ) : (
-                  <>☀️ Light Theme</>
-                )}
+                {theme === "light" ? <>🌙 Dark Theme</> : <>☀️ Light Theme</>}
               </button>
 
               <button
@@ -176,7 +174,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             </div>
           </div>
         </>,
-        document.body
+        document.body,
       )}
 
       {createPortal(
@@ -187,7 +185,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
           title="End Session?"
           message="Are you sure you want to end this session?"
         />,
-        document.body
+        document.body,
       )}
     </header>
   );
