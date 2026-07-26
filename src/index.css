@@ -2261,12 +2261,40 @@ body.menu-open .fab-add-btn {
 
 .expired-card-bottom {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.5rem;
   background: var(--bg-surface-elevated);
   border-radius: 12px;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border-color);
+}
+
+.expired-card-details-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.expired-dispose-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.expired-dispose-btn:hover {
+  background: #ef4444;
+  color: #ffffff;
 }
 
 .expired-detail {

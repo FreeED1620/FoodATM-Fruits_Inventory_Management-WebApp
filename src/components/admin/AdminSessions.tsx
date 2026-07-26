@@ -28,6 +28,7 @@ export const AdminSessions: React.FC = () => {
     const { data, error: fetchError } = await supabase
       .from('sessions')
       .select('*')
+      .neq('user_name', 'Admin')
       .order('started_at', { ascending: false });
 
     if (fetchError) {
@@ -116,7 +117,7 @@ export const AdminSessions: React.FC = () => {
                     </span>
                   </td>
                   <td>
-                    {!s.ended_at && s.user_name !== 'Admin' && (
+                    {!s.ended_at && (
                       <button
                         className="btn btn-secondary"
                         style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem' }}

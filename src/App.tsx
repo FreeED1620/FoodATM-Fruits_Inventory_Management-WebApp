@@ -19,6 +19,7 @@ import { AdminFruitImages } from './components/admin/AdminFruitImages';
 import { AdminUsers } from './components/admin/AdminUsers';
 import { AdminSessions } from './components/admin/AdminSessions';
 import { AdminSettings } from './components/admin/AdminSettings';
+import { AdminBranches } from './components/admin/AdminBranches';
 import { AdminUserSummary } from './components/admin/AdminUserSummary';
 import { Plus } from 'lucide-react';
 
@@ -93,6 +94,7 @@ const AdminRoute: React.FC = () => {
           <Route path="/fruit-images" element={<AdminFruitImages />} />
           <Route path="/users" element={<AdminUsers />} />
           <Route path="/sessions" element={<AdminSessions />} />
+          <Route path="/branches" element={<AdminBranches />} />
           <Route path="/settings" element={<AdminSettings />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>

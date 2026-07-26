@@ -1,15 +1,19 @@
-import React, { useMemo } from 'react';
-import { ArrowLeft, Calendar, AlertTriangle } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { ArrowLeft, Calendar, AlertTriangle, Trash2 } from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
 import { FruitImage } from '../common/FruitImage';
+import { ConfirmModal } from '../common/ConfirmModal';
 import { formatDate, getDaysUntil } from '../../utils/dateUtils';
+import { InventoryItem } from '../../types/inventory';
 
 interface ExpiredItemsPageProps {
   onBack: () => void;
 }
 
 export const ExpiredItemsPage: React.FC<ExpiredItemsPageProps> = ({ onBack }) => {
-  const { items, loading } = useInventory();
+  const { items, loading, disposeItem } = useInventory();
+  const [disposeTarget, setDisposeTarget] = useState<InventoryItem | null>(null);
+  const [disposing, setDisposing] = useState(false);
 
   const expiredItems = useMemo(() => {
     return items.filter(item => {
@@ -17,6 +21,14 @@ export const ExpiredItemsPage: React.FC<ExpiredItemsPageProps> = ({ onBack }) =>
       return getDaysUntil(item.expiryDate) < 0;
     });
   }, [items]);
+
+  const handleDispose = async () => {
+    if (!disposeTarget) return;
+    setDisposing(true);
+    await disposeItem(disposeTarget.id);
+    setDisposing(false);
+    setDisposeTarget(null);
+  };
 
   if (loading && items.length === 0) {
     return (
@@ -65,27 +77,47 @@ export const ExpiredItemsPage: React.FC<ExpiredItemsPageProps> = ({ onBack }) =>
                   </div>
                 </div>
                 <div className="expired-card-bottom">
-                  <div className="expired-detail">
-                    <span className="expired-detail-label">Quantity</span>
-                    <span className="expired-detail-value">{item.quantity} {item.unit}</span>
+                  <div className="expired-card-details-row">
+                    <div className="expired-detail">
+                      <span className="expired-detail-label">Quantity</span>
+                      <span className="expired-detail-value">{item.quantity} {item.unit}</span>
+                    </div>
+                    <div className="expired-detail">
+                      <span className="expired-detail-label">Expiry</span>
+                      <span className="expired-detail-value">
+                        <Calendar size={12} />
+                        {formatDate(item.expiryDate)}
+                      </span>
+                    </div>
+                    <div className="expired-detail">
+                      <span className="expired-detail-label">Batch</span>
+                      <span className="expired-detail-value">Batch {item.batchNumber}</span>
+                    </div>
                   </div>
-                  <div className="expired-detail">
-                    <span className="expired-detail-label">Expiry</span>
-                    <span className="expired-detail-value">
-                      <Calendar size={12} />
-                      {formatDate(item.expiryDate)}
-                    </span>
-                  </div>
-                  <div className="expired-detail">
-                    <span className="expired-detail-label">Batch</span>
-                    <span className="expired-detail-value">Batch {item.batchNumber}</span>
-                  </div>
+                  <button
+                    className="expired-dispose-btn"
+                    onClick={() => setDisposeTarget(item)}
+                    type="button"
+                  >
+                    <Trash2 size={14} />
+                    <span>Dispose</span>
+                  </button>
                 </div>
               </div>
             );
           })}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={disposeTarget !== null}
+        onClose={() => setDisposeTarget(null)}
+        onConfirm={handleDispose}
+        title="Dispose Expired Item?"
+        message={`This will remove "${disposeTarget?.fruitName}" (${disposeTarget?.inventoryId}) from inventory and log it in transaction history.`}
+        confirmText={disposing ? 'Disposing...' : 'Dispose'}
+        danger
+      />
     </div>
   );
 };

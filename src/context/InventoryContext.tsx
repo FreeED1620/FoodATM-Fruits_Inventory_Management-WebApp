@@ -31,6 +31,7 @@ interface InventoryContextType {
   undoAction: (logId: string) => Promise<boolean>;
   addFruit: (input: AddFruitInput) => Promise<boolean>;
   recordItemAction: (input: ActionInput) => Promise<boolean>;
+  disposeItem: (itemId: string) => Promise<boolean>;
   setSearchQuery: (query: string) => void;
   setActiveBatchFilter: (batch: number | null) => void;
   setActiveExpiryFilter: (filter: 'ALL' | 'CRITICAL' | 'WARNING' | 'FRESH' | 'EXPIRED') => void;
@@ -150,6 +151,22 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const disposeItem = async (itemId: string): Promise<boolean> => {
+    if (!currentSession) {
+      showToast('No active session. Please start a session first.', 'error');
+      return false;
+    }
+    try {
+      await InventoryService.disposeItem(itemId, currentSession.sessionId);
+      setItems(prev => prev.map(i => i.id === itemId ? { ...i, quantity: 0, status: 'DISPOSED' as const } : i));
+      showToast('Item disposed successfully', 'success');
+      return true;
+    } catch (err: any) {
+      showToast(err.message || 'Failed to dispose item', 'error');
+      return false;
+    }
+  };
+
   const openAddModal = () => setIsAddModalOpen(true);
   const closeAddModal = () => setIsAddModalOpen(false);
 
@@ -244,6 +261,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         undoAction,
         addFruit,
         recordItemAction,
+        disposeItem,
         setSearchQuery,
         setActiveBatchFilter,
         setActiveExpiryFilter,

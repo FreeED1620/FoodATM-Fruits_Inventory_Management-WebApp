@@ -3,14 +3,8 @@ import { Modal } from '../common/Modal';
 import { useInventory } from '../../context/InventoryContext';
 import { ActionType } from '../../types/inventory';
 import { getFruitIcon } from '../../utils/formatters';
+import { isSupabaseConfigured, supabase } from '../../services/supabaseClient';
 import { ShoppingCart, Send, ArrowRightLeft, CheckCircle2 } from 'lucide-react';
-
-const BRANCH_OPTIONS = [
-  'Branch 1 (Main Cold Storage)',
-  'Branch 2 (North Warehouse)',
-  'Branch 3 (South Warehouse)',
-  'Branch 4 (East Warehouse)',
-];
 
 export const ActionModal: React.FC = () => {
   const {
@@ -22,18 +16,35 @@ export const ActionModal: React.FC = () => {
 
   const [activeAction, setActiveAction] = useState<ActionType>('SELL');
   const [quantity, setQuantity] = useState<string>('');
-  const [targetBranch, setTargetBranch] = useState<string>(BRANCH_OPTIONS[0]);
+  const [targetBranch, setTargetBranch] = useState<string>('');
+  const [branchOptions, setBranchOptions] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
+    const fetchBranches = async () => {
+      if (!isSupabaseConfigured || !supabase) return;
+      const { data } = await supabase
+        .from('foodatmbranches')
+        .select('name')
+        .order('name');
+      if (data) {
+        const names = data.map((b: { name: string }) => b.name);
+        setBranchOptions(names);
+        if (names.length > 0) setTargetBranch(names[0]);
+      }
+    };
+    fetchBranches();
+  }, []);
+
+  useEffect(() => {
     if (item && isActionModalOpen) {
       setQuantity('10');
-      setTargetBranch(BRANCH_OPTIONS[0]);
+      setTargetBranch(branchOptions[0] || '');
       setErrorMsg(null);
       setActiveAction('SELL');
     }
-  }, [item, isActionModalOpen]);
+  }, [item, isActionModalOpen, branchOptions]);
 
   if (!item) return null;
 
@@ -206,7 +217,7 @@ export const ActionModal: React.FC = () => {
               onChange={e => setTargetBranch(e.target.value)}
               required
             >
-              {BRANCH_OPTIONS.map(branch => (
+              {branchOptions.map(branch => (
                 <option key={branch} value={branch}>
                   {branch}
                 </option>

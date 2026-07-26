@@ -212,6 +212,39 @@ export class InventoryService {
     }
   }
 
+  static async disposeItem(itemId: string, sessionId: string): Promise<void> {
+    const client = requireSupabase();
+    const items = await this.getItems();
+    const targetItem = items.find(i => i.id === itemId);
+
+    if (!targetItem) {
+      throw new Error('Inventory item not found.');
+    }
+
+    const { error: updateError } = await client
+      .from('inventory_items')
+      .update({ quantity: 0, status: 'DISPOSED' })
+      .eq('id', targetItem.id);
+
+    if (updateError) {
+      throw new Error(`Failed to dispose item: ${updateError.message}`);
+    }
+
+    const { error: logError } = await client
+      .from('inventory_logs')
+      .insert([{
+        inventory_item_id: targetItem.id,
+        inventory_id: targetItem.inventoryId,
+        action: 'DISPOSE',
+        quantity_affected: targetItem.quantity,
+        session_id: sessionId,
+      }]);
+
+    if (logError) {
+      throw new Error(`Failed to log disposal: ${logError.message}`);
+    }
+  }
+
   static async getUserActivityData(): Promise<UserSessionSummary[]> {
     const client = requireSupabase();
 

@@ -13,16 +13,18 @@ import {
   Menu,
   X,
   Activity,
+  MapPin,
 } from "lucide-react";
 
 const NAV_ITEMS = [
-  { path: "/admin", label: "Overview", icon: LayoutDashboard },
-  { path: "/admin/user-summary", label: "User Activity", icon: Activity },
-  { path: "/admin/inventory", label: "Inventory Items", icon: Package },
-  { path: "/admin/fruit-images", label: "Manage Fruits", icon: Image },
-  { path: "/admin/users", label: "Users", icon: Users },
-  { path: "/admin/sessions", label: "Sessions", icon: ClipboardList },
-  { path: "/admin/settings", label: "Settings", icon: Settings },
+  { path: '/admin', label: 'Overview', icon: LayoutDashboard },
+  { path: '/admin/user-summary', label: 'User Activity', icon: Activity },
+  { path: '/admin/inventory', label: 'Inventory Items', icon: Package },
+  { path: '/admin/fruit-images', label: 'Manage Fruits', icon: Image },
+  { path: '/admin/users', label: 'Users', icon: Users },
+  { path: '/admin/sessions', label: 'Sessions', icon: ClipboardList },
+  { path: '/admin/branches', label: 'Branches', icon: MapPin },
+  { path: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
 export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
