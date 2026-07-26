@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { isSupabaseConfigured, supabase } from '../services/supabaseClient';
 
 const SESSION_STORAGE_KEY = 'foodatm_active_session';
@@ -30,6 +30,26 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
     return null;
   });
+
+  useEffect(() => {
+    const validateSession = async () => {
+      if (!currentSession) return;
+      if (!isSupabaseConfigured || !supabase) return;
+
+      const { data } = await supabase
+        .from('sessions')
+        .select('ended_at')
+        .eq('id', currentSession.sessionId)
+        .single();
+
+      if (data && data.ended_at) {
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        setCurrentSession(null);
+      }
+    };
+
+    validateSession();
+  }, []);
 
   const startSession = useCallback(async (userName: string) => {
     if (!isSupabaseConfigured || !supabase) {

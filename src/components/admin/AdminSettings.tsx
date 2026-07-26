@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Save, Eye, EyeOff } from 'lucide-react';
+import { isSupabaseConfigured, supabase } from '../../services/supabaseClient';
 
 export const AdminSettings: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -8,37 +9,68 @@ export const AdminSettings: React.FC = () => {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const storedPassword = localStorage.getItem('foodatm_admin_password') || 'admin123';
-
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     setMessage(null);
+    setLoading(true);
 
-    if (currentPassword !== storedPassword) {
+    if (!isSupabaseConfigured || !supabase) {
+      setMessage({ type: 'error', text: 'Supabase is not configured' });
+      setLoading(false);
+      return;
+    }
+
+    const { data, error: fetchError } = await supabase
+      .from('admin_settings')
+      .select('setting_value')
+      .eq('setting_key', 'admin_password')
+      .single();
+
+    if (fetchError || !data) {
+      setMessage({ type: 'error', text: 'Failed to load current password' });
+      setLoading(false);
+      return;
+    }
+
+    if (currentPassword !== data.setting_value) {
       setMessage({ type: 'error', text: 'Current password is incorrect' });
+      setLoading(false);
       return;
     }
 
     if (!newPassword.trim()) {
       setMessage({ type: 'error', text: 'New password cannot be empty' });
+      setLoading(false);
       return;
     }
 
     if (newPassword.length < 6) {
       setMessage({ type: 'error', text: 'New password must be at least 6 characters' });
+      setLoading(false);
       return;
     }
 
     if (newPassword !== confirmPassword) {
       setMessage({ type: 'error', text: 'New passwords do not match' });
+      setLoading(false);
       return;
     }
 
-    localStorage.setItem('foodatm_admin_password', newPassword);
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setMessage({ type: 'success', text: 'Password changed successfully!' });
+    const { error: updateError } = await supabase
+      .from('admin_settings')
+      .update({ setting_value: newPassword, updated_at: new Date().toISOString() })
+      .eq('setting_key', 'admin_password');
+
+    if (updateError) {
+      setMessage({ type: 'error', text: updateError.message });
+    } else {
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setMessage({ type: 'success', text: 'Password changed successfully!' });
+    }
+    setLoading(false);
   };
 
   return (
@@ -111,9 +143,9 @@ export const AdminSettings: React.FC = () => {
           </div>
         )}
 
-        <button className="btn btn-primary" onClick={handleChangePassword} type="button" style={{ marginTop: '1rem' }}>
+        <button className="btn btn-primary" onClick={handleChangePassword} disabled={loading} type="button" style={{ marginTop: '1rem' }}>
           <Save size={18} />
-          <span>Save New Password</span>
+          <span>{loading ? 'Saving...' : 'Save New Password'}</span>
         </button>
       </div>
     </div>

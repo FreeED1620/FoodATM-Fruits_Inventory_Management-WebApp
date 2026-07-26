@@ -1,36 +1,52 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useSession } from '../context/SessionContext';
-import { isSupabaseConfigured, supabase } from '../services/supabaseClient';
-import { LogIn, Shield } from 'lucide-react';
-
-const USERS = ['User-1', 'User-2', 'User-3', 'User-4'];
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSession } from "../context/SessionContext";
+import { isSupabaseConfigured, supabase } from "../services/supabaseClient";
+import { LogIn, Shield } from "lucide-react";
 
 export const SessionPicker: React.FC = () => {
   const { startSession } = useSession();
   const navigate = useNavigate();
-  const [selectedUser, setSelectedUser] = useState<string>('');
+  const [users, setUsers] = useState<string[]>([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<string>("");
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAdminPassword, setShowAdminPassword] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
+  const [adminPassword, setAdminPassword] = useState("");
   const [adminError, setAdminError] = useState<string | null>(null);
   const [adminLoading, setAdminLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (!isSupabaseConfigured || !supabase) {
+        setUsersLoading(false);
+        return;
+      }
+      const { data } = await supabase
+        .from("users")
+        .select("user_name")
+        .order("user_name");
+      setUsers(data?.map((u) => u.user_name) || []);
+      setUsersLoading(false);
+    };
+    fetchUsers();
+  }, []);
 
   const checkActiveSession = async (userName: string): Promise<boolean> => {
     if (!isSupabaseConfigured || !supabase) return false;
     const { data } = await supabase
-      .from('sessions')
-      .select('id')
-      .eq('user_name', userName)
-      .is('ended_at', null)
+      .from("sessions")
+      .select("id")
+      .eq("user_name", userName)
+      .is("ended_at", null)
       .limit(1);
     return !!(data && data.length > 0);
   };
 
   const handleStart = async () => {
     if (!selectedUser) {
-      setError('Please select a user.');
+      setError("Please select a user.");
       return;
     }
 
@@ -39,40 +55,53 @@ export const SessionPicker: React.FC = () => {
     try {
       const isActive = await checkActiveSession(selectedUser);
       if (isActive) {
-        setError('This user is already active on another device.');
+        setError("This user is already active on another device.");
         setStarting(false);
         return;
       }
       await startSession(selectedUser);
     } catch (err: any) {
-      setError(err.message || 'Failed to start session');
+      setError(err.message || "Failed to start session");
       setStarting(false);
     }
   };
 
   const handleAdminClick = () => {
-    setSelectedUser('Admin');
+    setSelectedUser("Admin");
     setError(null);
     setShowAdminPassword(true);
-    setAdminPassword('');
+    setAdminPassword("");
     setAdminError(null);
   };
 
   const handleAdminLogin = async () => {
-    const storedPassword = localStorage.getItem('foodatm_admin_password') || 'admin123';
-    if (adminPassword !== storedPassword) {
-      setAdminError('Incorrect password');
+    setAdminLoading(true);
+    setAdminError(null);
+
+    if (!isSupabaseConfigured || !supabase) {
+      setAdminError("Supabase is not configured");
+      setAdminLoading(false);
       return;
     }
 
-    setAdminLoading(true);
-    setAdminError(null);
+    const { data } = await supabase
+      .from("admin_settings")
+      .select("setting_value")
+      .eq("setting_key", "admin_password")
+      .single();
+
+    if (!data || adminPassword !== data.setting_value) {
+      setAdminError("Incorrect password");
+      setAdminLoading(false);
+      return;
+    }
+
     try {
-      await startSession('Admin');
-      localStorage.setItem('foodatm_admin_auth', 'true');
-      navigate('/admin');
+      await startSession("Admin");
+      localStorage.setItem("foodatm_admin_auth", "true");
+      navigate("/admin");
     } catch (err: any) {
-      setAdminError(err.message || 'Failed to start admin session');
+      setAdminError(err.message || "Failed to start admin session");
       setAdminLoading(false);
     }
   };
@@ -80,27 +109,39 @@ export const SessionPicker: React.FC = () => {
   return (
     <div className="shift-picker-screen">
       <div className="shift-picker-content">
-        <div className="shift-picker-icon">🍏</div>
-        <h1 className="shift-picker-title">FoodATM</h1>
+        <div className="brand-icon-wrapper" title="FoodATM Warehouse">
+          <img src="/logo2.png" alt="FoodATM Logo" className="brand-logo" />
+        </div>
+
+        <br />
+
         <p className="shift-picker-subtitle">Select your name to begin</p>
 
         <div className="session-user-grid">
-          {USERS.map(user => (
-            <button
-              key={user}
-              className={`session-user-btn ${selectedUser === user ? 'selected' : ''}`}
-              onClick={() => { setSelectedUser(user); setError(null); setShowAdminPassword(false); }}
-              type="button"
-            >
-              <span className="session-user-avatar">
-                {user.charAt(0).toUpperCase()}
-              </span>
-              <span className="session-user-name">{user}</span>
-            </button>
-          ))}
+          {usersLoading ? (
+            <div className="spinner" style={{ margin: "1rem auto" }} />
+          ) : (
+            users.map((user) => (
+              <button
+                key={user}
+                className={`session-user-btn ${selectedUser === user ? "selected" : ""}`}
+                onClick={() => {
+                  setSelectedUser(user);
+                  setError(null);
+                  setShowAdminPassword(false);
+                }}
+                type="button"
+              >
+                <span className="session-user-avatar">
+                  {user.charAt(0).toUpperCase()}
+                </span>
+                <span className="session-user-name">{user}</span>
+              </button>
+            ))
+          )}
 
           <button
-            className={`session-user-btn session-user-btn-admin ${selectedUser === 'Admin' ? 'selected' : ''}`}
+            className={`session-user-btn session-user-btn-admin ${selectedUser === "Admin" ? "selected" : ""}`}
             onClick={handleAdminClick}
             type="button"
           >
@@ -119,12 +160,26 @@ export const SessionPicker: React.FC = () => {
               className="form-input"
               placeholder="Password"
               value={adminPassword}
-              onChange={e => { setAdminPassword(e.target.value); setAdminError(null); }}
-              onKeyDown={e => { if (e.key === 'Enter') handleAdminLogin(); }}
+              onChange={(e) => {
+                setAdminPassword(e.target.value);
+                setAdminError(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleAdminLogin();
+              }}
               autoFocus
             />
             {adminError && (
-              <div className="form-error" style={{ marginTop: '0.5rem', background: 'rgba(239, 68, 68, 0.1)', padding: '0.5rem 0.75rem', borderRadius: '8px', textAlign: 'center' }}>
+              <div
+                className="form-error"
+                style={{
+                  marginTop: "0.5rem",
+                  background: "rgba(239, 68, 68, 0.1)",
+                  padding: "0.5rem 0.75rem",
+                  borderRadius: "8px",
+                  textAlign: "center",
+                }}
+              >
                 {adminError}
               </div>
             )}
@@ -133,16 +188,25 @@ export const SessionPicker: React.FC = () => {
               onClick={handleAdminLogin}
               disabled={adminLoading}
               type="button"
-              style={{ marginTop: '0.75rem' }}
+              style={{ marginTop: "0.75rem" }}
             >
               <Shield size={18} />
-              <span>{adminLoading ? 'Verifying...' : 'Login as Admin'}</span>
+              <span>{adminLoading ? "Verifying..." : "Login as Admin"}</span>
             </button>
           </div>
         )}
 
         {error && (
-          <div className="form-error" style={{ marginTop: '1rem', background: 'rgba(239, 68, 68, 0.1)', padding: '0.65rem 0.85rem', borderRadius: '8px', textAlign: 'center' }}>
+          <div
+            className="form-error"
+            style={{
+              marginTop: "1rem",
+              background: "rgba(239, 68, 68, 0.1)",
+              padding: "0.65rem 0.85rem",
+              borderRadius: "8px",
+              textAlign: "center",
+            }}
+          >
             {error}
           </div>
         )}
@@ -155,7 +219,7 @@ export const SessionPicker: React.FC = () => {
             type="button"
           >
             <LogIn size={20} />
-            <span>{starting ? 'Starting...' : 'Start Session'}</span>
+            <span>{starting ? "Starting..." : "Start Session"}</span>
           </button>
         )}
       </div>
