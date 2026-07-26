@@ -17,6 +17,8 @@ export const ExpiredItemsPage: React.FC<ExpiredItemsPageProps> = ({ onBack }) =>
 
   const expiredItems = useMemo(() => {
     return items.filter(item => {
+      if (item.status === 'DISPOSED') return false;
+      if (item.status === 'EXPIRED') return true;
       if (item.quantity <= 0) return false;
       return getDaysUntil(item.expiryDate) < 0;
     });
@@ -113,9 +115,9 @@ export const ExpiredItemsPage: React.FC<ExpiredItemsPageProps> = ({ onBack }) =>
         isOpen={disposeTarget !== null}
         onClose={() => setDisposeTarget(null)}
         onConfirm={handleDispose}
-        title="Dispose Expired Item?"
-        message={`This will remove "${disposeTarget?.fruitName}" (${disposeTarget?.inventoryId}) from inventory and log it in transaction history.`}
-        confirmText={disposing ? 'Disposing...' : 'Dispose'}
+        title="Dispose Item?"
+        message={`This will permanently dispose "${disposeTarget?.fruitName}" (${disposeTarget?.inventoryId}) from inventory and log it in transaction history.`}
+        confirmText={disposing ? 'Processing...' : 'Confirm'}
         danger
       />
     </div>

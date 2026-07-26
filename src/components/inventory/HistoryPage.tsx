@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Undo2, ShoppingCart, Gift, ArrowRightLeft, CheckCircle2, Clock } from 'lucide-react';
+import { ArrowLeft, Undo2, ShoppingCart, Gift, ArrowRightLeft, CheckCircle2, Clock, AlertTriangle, Trash2 } from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
 import { InventoryLog } from '../../types/inventory';
 import { formatDateTime } from '../../utils/dateUtils';
@@ -38,6 +38,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBack }) => {
       case 'SELL': return <ShoppingCart size={16} />;
       case 'DISTRIBUTE': return <Gift size={16} />;
       case 'TRANSFER': return <ArrowRightLeft size={16} />;
+      case 'EXPIRED': return <AlertTriangle size={16} />;
+      case 'DISPOSE': return <Trash2 size={16} />;
       default: return <Clock size={16} />;
     }
   };
@@ -47,6 +49,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBack }) => {
       case 'SELL': return '#059669';
       case 'DISTRIBUTE': return '#7c3aed';
       case 'TRANSFER': return '#2563eb';
+      case 'EXPIRED': return '#ef4444';
+      case 'DISPOSE': return '#9ca3af';
       default: return '#64748b';
     }
   };

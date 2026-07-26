@@ -1152,6 +1152,11 @@ body.menu-open .fab-add-btn {
   color: #ffffff;
 }
 
+.tab-btn.active-expired {
+  background: #ef4444;
+  color: #ffffff;
+}
+
 /* Toast Component */
 .toast-notification {
   position: fixed;

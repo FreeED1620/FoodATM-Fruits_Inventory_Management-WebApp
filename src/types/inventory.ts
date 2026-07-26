@@ -2,7 +2,7 @@ export type CategoryCode = 'F' | 'V' | 'D';
 
 export type InventoryStatus = 'AVAILABLE' | 'SOLD' | 'DISTRIBUTED' | 'TRANSFERRED' | 'EXPIRED' | 'DISPOSED';
 
-export type ActionType = 'SELL' | 'DISTRIBUTE' | 'TRANSFER' | 'DISPOSE';
+export type ActionType = 'SELL' | 'DISTRIBUTE' | 'TRANSFER' | 'EXPIRED' | 'DISPOSE';
 
 export interface InventoryItem {
   id: string;

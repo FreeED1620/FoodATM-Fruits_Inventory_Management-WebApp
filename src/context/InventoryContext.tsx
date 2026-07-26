@@ -31,6 +31,7 @@ interface InventoryContextType {
   undoAction: (logId: string) => Promise<boolean>;
   addFruit: (input: AddFruitInput) => Promise<boolean>;
   recordItemAction: (input: ActionInput) => Promise<boolean>;
+  markExpired: (itemId: string) => Promise<boolean>;
   disposeItem: (itemId: string) => Promise<boolean>;
   setSearchQuery: (query: string) => void;
   setActiveBatchFilter: (batch: number | null) => void;
@@ -151,6 +152,22 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const markExpired = async (itemId: string): Promise<boolean> => {
+    if (!currentSession) {
+      showToast('No active session. Please start a session first.', 'error');
+      return false;
+    }
+    try {
+      await InventoryService.markExpired(itemId, currentSession.sessionId);
+      setItems(prev => prev.map(i => i.id === itemId ? { ...i, status: 'EXPIRED' as const } : i));
+      showToast('Item marked as expired', 'success');
+      return true;
+    } catch (err: any) {
+      showToast(err.message || 'Failed to mark item as expired', 'error');
+      return false;
+    }
+  };
+
   const disposeItem = async (itemId: string): Promise<boolean> => {
     if (!currentSession) {
       showToast('No active session. Please start a session first.', 'error');
@@ -158,7 +175,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
     try {
       await InventoryService.disposeItem(itemId, currentSession.sessionId);
-      setItems(prev => prev.map(i => i.id === itemId ? { ...i, quantity: 0, status: 'DISPOSED' as const } : i));
+      setItems(prev => prev.map(i => i.id === itemId ? { ...i, status: 'DISPOSED' as const } : i));
       showToast('Item disposed successfully', 'success');
       return true;
     } catch (err: any) {
@@ -261,6 +278,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         undoAction,
         addFruit,
         recordItemAction,
+        markExpired,
         disposeItem,
         setSearchQuery,
         setActiveBatchFilter,

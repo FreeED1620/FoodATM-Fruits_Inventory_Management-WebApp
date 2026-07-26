@@ -4,7 +4,7 @@ import { useInventory } from '../../context/InventoryContext';
 import { ActionType } from '../../types/inventory';
 import { getFruitIcon } from '../../utils/formatters';
 import { isSupabaseConfigured, supabase } from '../../services/supabaseClient';
-import { ShoppingCart, Send, ArrowRightLeft, CheckCircle2 } from 'lucide-react';
+import { ShoppingCart, Send, ArrowRightLeft, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 export const ActionModal: React.FC = () => {
   const {
@@ -12,6 +12,7 @@ export const ActionModal: React.FC = () => {
     closeActionModal,
     selectedItemForAction: item,
     recordItemAction,
+    markExpired,
   } = useInventory();
 
   const [activeAction, setActiveAction] = useState<ActionType>('SELL');
@@ -58,6 +59,16 @@ export const ActionModal: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+
+    if (activeAction === 'EXPIRED') {
+      setSubmitting(true);
+      const success = await markExpired(item.id);
+      setSubmitting(false);
+      if (success) {
+        closeActionModal();
+      }
+      return;
+    }
 
     const qtyNum = parseFloat(quantity);
     if (isNaN(qtyNum) || qtyNum <= 0) {
@@ -154,10 +165,20 @@ export const ActionModal: React.FC = () => {
           <ArrowRightLeft size={15} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />
           Transfer
         </button>
+
+        <button
+          type="button"
+          className={`tab-btn ${activeAction === 'EXPIRED' ? 'active active-expired' : ''}`}
+          onClick={() => setActiveAction('EXPIRED')}
+        >
+          <AlertTriangle size={15} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />
+          Expired
+        </button>
       </div>
 
       <form onSubmit={handleSubmit}>
-        {/* Quantity to process */}
+        {/* Quantity to process — hidden for EXPIRED */}
+        {activeAction !== 'EXPIRED' && (
         <div className="form-group">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
             <label className="form-label">Quantity to {activeAction.toLowerCase()} *</label>
@@ -206,6 +227,26 @@ export const ActionModal: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
+
+        {/* Expired info message */}
+        {activeAction === 'EXPIRED' && (
+          <div style={{
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: 'var(--radius-md)',
+            padding: '0.85rem 1rem',
+            marginBottom: '1rem',
+            fontSize: '0.85rem',
+            color: 'var(--text-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}>
+            <AlertTriangle size={16} style={{ color: '#ef4444', flexShrink: 0 }} />
+            <span>The entire item ({item.quantity} {item.unit}) will be marked as <strong>expired</strong> and moved to the Expired section.</span>
+          </div>
+        )}
 
         {/* Branch Dropdown Menu for Transfer Action Only */}
         {activeAction === 'TRANSFER' && (

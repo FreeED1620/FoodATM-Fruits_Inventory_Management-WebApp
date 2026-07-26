@@ -81,7 +81,7 @@ export class InventoryService {
     }
 
     const newQuantity = Math.max(0, targetItem.quantity - Math.round(input.quantity));
-    const newStatus = newQuantity === 0 ? (input.action === 'SELL' ? 'SOLD' : input.action === 'DISTRIBUTE' ? 'DISTRIBUTED' : 'TRANSFERRED') : targetItem.status;
+    const newStatus = newQuantity === 0 ? (input.action === 'SELL' ? 'SOLD' : input.action === 'DISTRIBUTE' ? 'DISTRIBUTED' : input.action === 'EXPIRED' ? 'EXPIRED' : 'TRANSFERRED') : targetItem.status;
 
     const { error: updateError } = await client
       .from('inventory_items')
@@ -212,6 +212,39 @@ export class InventoryService {
     }
   }
 
+  static async markExpired(itemId: string, sessionId: string): Promise<void> {
+    const client = requireSupabase();
+    const items = await this.getItems();
+    const targetItem = items.find(i => i.id === itemId);
+
+    if (!targetItem) {
+      throw new Error('Inventory item not found.');
+    }
+
+    const { error: updateError } = await client
+      .from('inventory_items')
+      .update({ status: 'EXPIRED' })
+      .eq('id', targetItem.id);
+
+    if (updateError) {
+      throw new Error(`Failed to mark item as expired: ${updateError.message}`);
+    }
+
+    const { error: logError } = await client
+      .from('inventory_logs')
+      .insert([{
+        inventory_item_id: targetItem.id,
+        inventory_id: targetItem.inventoryId,
+        action: 'EXPIRED',
+        quantity_affected: targetItem.quantity,
+        session_id: sessionId,
+      }]);
+
+    if (logError) {
+      throw new Error(`Failed to log expiry: ${logError.message}`);
+    }
+  }
+
   static async disposeItem(itemId: string, sessionId: string): Promise<void> {
     const client = requireSupabase();
     const items = await this.getItems();
@@ -223,7 +256,7 @@ export class InventoryService {
 
     const { error: updateError } = await client
       .from('inventory_items')
-      .update({ quantity: 0, status: 'DISPOSED' })
+      .update({ status: 'DISPOSED' })
       .eq('id', targetItem.id);
 
     if (updateError) {
@@ -236,7 +269,7 @@ export class InventoryService {
         inventory_item_id: targetItem.id,
         inventory_id: targetItem.inventoryId,
         action: 'DISPOSE',
-        quantity_affected: targetItem.quantity,
+        quantity_affected: 0,
         session_id: sessionId,
       }]);
 
