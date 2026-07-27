@@ -159,7 +159,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
     try {
       await InventoryService.markExpired(itemId, currentSession.sessionId);
-      setItems(prev => prev.map(i => i.id === itemId ? { ...i, status: 'EXPIRED' as const } : i));
+      setItems(prev => prev.map(i => i.id === itemId ? { ...i, status: 'EXPIRED' as const, updatedAt: new Date().toISOString() } : i));
       showToast('Item marked as expired', 'success');
       return true;
     } catch (err: any) {

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Calendar, AlertTriangle, Trash2 } from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
 import { FruitImage } from '../common/FruitImage';
@@ -14,6 +14,29 @@ export const ExpiredItemsPage: React.FC<ExpiredItemsPageProps> = ({ onBack }) =>
   const { items, loading, disposeItem } = useInventory();
   const [disposeTarget, setDisposeTarget] = useState<InventoryItem | null>(null);
   const [disposing, setDisposing] = useState(false);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => setTick(t => t + 1), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatExpiredDuration = (dateStr: string): string => {
+    void tick;
+    const now = new Date();
+    const marked = new Date(dateStr);
+    const diffMs = now.getTime() - marked.getTime();
+    if (diffMs <= 0) return 'just now';
+    const totalMinutes = Math.floor(diffMs / 60000);
+    const days = Math.floor(totalMinutes / 1440);
+    const hours = Math.floor((totalMinutes % 1440) / 60);
+    const minutes = totalMinutes % 60;
+    const parts: string[] = [];
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0 || parts.length === 0) parts.push(`${minutes}m`);
+    return `${parts.join(' ')} ago`;
+  };
 
   const expiredItems = useMemo(() => {
     return items.filter(item => {
@@ -62,7 +85,6 @@ export const ExpiredItemsPage: React.FC<ExpiredItemsPageProps> = ({ onBack }) =>
       ) : (
         <div className="inventory-grid">
           {expiredItems.map(item => {
-            const daysExpired = Math.abs(getDaysUntil(item.expiryDate));
             return (
               <div key={item.id} className="expired-item-card">
                 <div className="expired-card-top">
@@ -75,7 +97,7 @@ export const ExpiredItemsPage: React.FC<ExpiredItemsPageProps> = ({ onBack }) =>
                   </div>
                   <div className="expired-days-badge">
                     <AlertTriangle size={12} />
-                    <span>{daysExpired}d ago</span>
+                    <span>{formatExpiredDuration(item.updatedAt || item.expiryDate)}</span>
                   </div>
                 </div>
                 <div className="expired-card-bottom">

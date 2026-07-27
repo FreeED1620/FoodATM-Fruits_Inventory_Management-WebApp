@@ -223,7 +223,7 @@ export class InventoryService {
 
     const { error: updateError } = await client
       .from('inventory_items')
-      .update({ status: 'EXPIRED' })
+      .update({ status: 'EXPIRED', updated_at: new Date().toISOString() })
       .eq('id', targetItem.id);
 
     if (updateError) {
