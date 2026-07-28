@@ -13,9 +13,9 @@ export const AddFruitModal: React.FC = () => {
   const today = getTodayString();
   const defaultExpiry = getFutureDateString(7);
 
-  const [fruitName, setFruitName] = useState<string>('Banana');
-  const [quantity, setQuantity] = useState<string>('50');
-  const [batchInput, setBatchInput] = useState<string>('1');
+  const [fruitName, setFruitName] = useState<string>('');
+  const [quantity, setQuantity] = useState<string>('');
+  const [batchInput, setBatchInput] = useState<string>('');
   const [categoryCode, setCategoryCode] = useState<CategoryCode>('F');
   const [receivedDate, setReceivedDate] = useState<string>(today);
   const [expiryDate, setExpiryDate] = useState<string>(defaultExpiry);
@@ -26,14 +26,12 @@ export const AddFruitModal: React.FC = () => {
 
   useEffect(() => {
     if (isAddModalOpen) {
-      const activeBatches = items.map(i => i.batchNumber);
-      const latestBatch = activeBatches.length > 0 ? Math.max(...activeBatches) : 1;
-      setBatchInput(String(latestBatch));
+      setBatchInput('');
       setCategoryCode('F');
       setReceivedDate(getTodayString());
       setExpiryDate(getFutureDateString(7));
-      setFruitName('Banana');
-      setQuantity('50');
+      setFruitName('');
+      setQuantity('');
       setFormError(null);
 
       FruitImageService.getAll()
@@ -42,7 +40,7 @@ export const AddFruitModal: React.FC = () => {
     }
   }, [isAddModalOpen, items]);
 
-  const parsedBatchNumber = parseInt(batchInput.trim(), 10) || 1;
+  const parsedBatchNumber = batchInput.trim() ? parseInt(batchInput.trim(), 10) : NaN;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +57,7 @@ export const AddFruitModal: React.FC = () => {
       return;
     }
 
-    if (parsedBatchNumber < 1) {
+    if (!batchInput.trim() || isNaN(parsedBatchNumber) || parsedBatchNumber < 1) {
       setFormError('Batch number must be 1 or higher.');
       return;
     }
@@ -138,7 +136,7 @@ export const AddFruitModal: React.FC = () => {
               placeholder="Or type custom fruit name..."
               value={fruitName}
               onChange={e => setFruitName(e.target.value)}
-              maxLength={50}
+              maxLength={30}
               required
             />
           </div>
@@ -154,9 +152,9 @@ export const AddFruitModal: React.FC = () => {
               min="1"
               className="form-input"
               value={quantity}
-              onChange={e => setQuantity(e.target.value)}
+              onChange={e => setQuantity(e.target.value.slice(0, 4))}
               placeholder="50"
-              maxLength={8}
+              maxLength={4}
               required
             />
           </div>
@@ -168,9 +166,9 @@ export const AddFruitModal: React.FC = () => {
               min="1"
               className="form-input"
               value={batchInput}
-              onChange={e => setBatchInput(e.target.value)}
+              onChange={e => setBatchInput(e.target.value.slice(0, 4))}
               placeholder="1"
-              maxLength={6}
+              maxLength={4}
               required
             />
           </div>

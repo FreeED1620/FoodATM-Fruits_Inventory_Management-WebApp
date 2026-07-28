@@ -159,6 +159,7 @@ export const AdminFruitImages: React.FC = () => {
               type="text"
               className="form-input"
               placeholder="e.g. Apple, Banana, Dragon Fruit"
+              maxLength={30}
               value={fruitName}
               onChange={e => { setFruitName(e.target.value); setError(null); setSuccess(null); }}
               onKeyDown={e => { if (e.key === 'Enter') handleUpload(); }}

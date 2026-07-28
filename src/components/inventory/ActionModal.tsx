@@ -206,9 +206,9 @@ export const ActionModal: React.FC = () => {
               max={maxQty}
               className="form-input"
               value={quantity}
-              onChange={e => setQuantity(e.target.value)}
+              onChange={e => setQuantity(e.target.value.slice(0, 4))}
               placeholder={`Enter amount in ${item.unit}`}
-              maxLength={8}
+              maxLength={4}
               required
             />
             <div

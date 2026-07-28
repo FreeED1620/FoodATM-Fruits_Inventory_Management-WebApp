@@ -195,6 +195,7 @@ export const SessionPicker: React.FC = () => {
                 type="password"
                 className="form-input"
                 placeholder="Password"
+                maxLength={20}
                 value={userPassword}
                 onChange={(e) => {
                   setUserPassword(e.target.value);
@@ -240,6 +241,7 @@ export const SessionPicker: React.FC = () => {
               type="password"
               className="form-input"
               placeholder="Password"
+              maxLength={20}
               value={adminPassword}
               onChange={(e) => {
                 setAdminPassword(e.target.value);

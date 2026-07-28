@@ -154,6 +154,7 @@ export const AdminUsers: React.FC = () => {
             type={showNewPassword ? 'text' : 'password'}
             className="form-input"
             placeholder="Password"
+            maxLength={20}
             value={newPassword}
             onChange={e => { setNewPassword(e.target.value); setError(null); }}
             onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
@@ -195,6 +196,7 @@ export const AdminUsers: React.FC = () => {
                       type={showEditPassword ? 'text' : 'password'}
                       className="form-input"
                       placeholder="New password (leave empty to keep)"
+                      maxLength={20}
                       value={editPassword}
                       onChange={e => setEditPassword(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') setEditingId(null); }}

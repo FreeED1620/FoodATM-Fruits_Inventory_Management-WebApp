@@ -6,7 +6,7 @@ import { Search } from 'lucide-react';
 export const AdminInventory: React.FC = () => {
   const { items } = useInventory();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'AVAILABLE' | 'EXPIRED' | 'SOLD' | 'DISTRIBUTED' | 'TRANSFERRED'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'AVAILABLE' | 'EXPIRED' | 'DISPOSED' | 'SOLD' | 'DISTRIBUTED' | 'TRANSFERRED'>('ALL');
 
   const filtered = useMemo(() => {
     return items.filter(item => {
@@ -25,6 +25,7 @@ export const AdminInventory: React.FC = () => {
     { value: 'SOLD', label: 'Sold' },
     { value: 'DISTRIBUTED', label: 'Distributed' },
     { value: 'TRANSFERRED', label: 'Transferred' },
+    { value: 'DISPOSED', label: 'Disposed' },
   ];
 
   return (
