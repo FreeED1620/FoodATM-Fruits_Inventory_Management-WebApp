@@ -33,7 +33,7 @@ export const InventoryCard: React.FC<InventoryCardProps> = ({ item }) => {
         <div className="card-fruit-info-group">
           {/* White Box with Fruit Image */}
           <div className="card-emoji-box">
-            <FruitImage fruitName={item.fruitName} size={48} />
+            <FruitImage fruitName={item.fruitName} size={72} />
           </div>
 
           {/* White Box with Fruit Name & Batch Pill */}

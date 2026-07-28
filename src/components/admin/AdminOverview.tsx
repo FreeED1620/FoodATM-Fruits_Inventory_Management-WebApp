@@ -20,16 +20,22 @@ export const AdminOverview: React.FC = () => {
     const fetchSessionData = async () => {
       if (!isSupabaseConfigured || !supabase) return;
 
-      const { data } = await supabase
-        .from('sessions')
-        .select('*')
-        .order('started_at', { ascending: false })
-        .limit(5);
+      const [activeSnap, recentSnap] = await Promise.all([
+        supabase
+          .from('sessions')
+          .select('id', { count: 'exact', head: true })
+          .is('ended_at', null)
+          .neq('user_name', 'Admin'),
+        supabase
+          .from('sessions')
+          .select('*')
+          .neq('user_name', 'Admin')
+          .order('started_at', { ascending: false })
+          .limit(4),
+      ]);
 
-      if (data) {
-        setRecentSessions(data);
-        setSessionCount(data.length);
-      }
+      setSessionCount(activeSnap.count ?? 0);
+      if (recentSnap.data) setRecentSessions(recentSnap.data);
     };
 
     fetchSessionData();

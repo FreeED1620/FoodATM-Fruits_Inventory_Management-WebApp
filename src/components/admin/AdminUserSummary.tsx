@@ -3,6 +3,7 @@ import {
   InventoryService,
   UserSessionSummary,
 } from "../../services/inventoryService";
+import { isSupabaseConfigured, supabase } from "../../services/supabaseClient";
 import { FruitImage } from "../common/FruitImage";
 import { InventoryItem, InventoryLog } from "../../types/inventory";
 import {
@@ -16,20 +17,18 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 
-const STORAGE_KEY = "foodatm_admin_users";
-const DEFAULT_USERS = ["User-1", "User-2", "User-3", "User-4"];
-
-function loadUsers(): string[] {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    try {
-      const list = JSON.parse(stored);
-      return list.filter((u: string) => u.toLowerCase() !== "admin");
-    } catch {
-      return [...DEFAULT_USERS];
-    }
+async function loadUsers(): Promise<string[]> {
+  if (!isSupabaseConfigured || !supabase) return ["User-1", "User-2", "User-3", "User-4"];
+  const { data } = await supabase
+    .from('users')
+    .select('user_name')
+    .order('user_name');
+  if (data) {
+    return data
+      .map((u: { user_name: string }) => u.user_name)
+      .filter((name: string) => name.toLowerCase() !== 'admin');
   }
-  return [...DEFAULT_USERS];
+  return ["User-1", "User-2", "User-3", "User-4"];
 }
 
 function getTodayYYYYMMDD(): string {
@@ -45,14 +44,19 @@ export const AdminUserSummary: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const availableUsers = useMemo(() => loadUsers(), []);
-  const [selectedUser, setSelectedUser] = useState<string>(
-    availableUsers[0] || "User-1",
-  );
+  const [availableUsers, setAvailableUsers] = useState<string[]>([]);
+  const [selectedUser, setSelectedUser] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>(getTodayYYYYMMDD());
   const [activeTab, setActiveTab] = useState<"items" | "logs" | "sessions">(
     "items",
   );
+
+  useEffect(() => {
+    loadUsers().then(users => {
+      setAvailableUsers(users);
+      if (users.length > 0) setSelectedUser(users[0]);
+    });
+  }, []);
 
   const fetchData = async () => {
     setLoading(true);
