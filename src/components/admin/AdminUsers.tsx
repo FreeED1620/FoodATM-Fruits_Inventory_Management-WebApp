@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { UserPlus, Edit3, Trash2 } from 'lucide-react';
+import { UserPlus, Edit3, Trash2, Eye, EyeOff } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../../services/supabaseClient';
 import { ConfirmModal } from '../common/ConfirmModal';
 
 interface UserRecord {
   id: string;
   user_name: string;
+  password: string;
 }
 
 export const AdminUsers: React.FC = () => {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [newUser, setNewUser] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [showEditPassword, setShowEditPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +50,10 @@ export const AdminUsers: React.FC = () => {
       setError('Enter a user name');
       return;
     }
+    if (!newPassword.trim()) {
+      setError('Enter a password');
+      return;
+    }
     if (users.some(u => u.user_name === trimmed)) {
       setError('User already exists');
       return;
@@ -56,7 +65,7 @@ export const AdminUsers: React.FC = () => {
     if (!isSupabaseConfigured || !supabase) return;
     const { data, error: insertError } = await supabase
       .from('users')
-      .insert([{ user_name: trimmed }])
+      .insert([{ user_name: trimmed, password: newPassword }])
       .select()
       .single();
     if (insertError) {
@@ -64,6 +73,7 @@ export const AdminUsers: React.FC = () => {
     } else {
       setUsers(prev => [...prev, data].sort((a, b) => a.user_name.localeCompare(b.user_name)));
       setNewUser('');
+      setNewPassword('');
       setError(null);
     }
   };
@@ -84,16 +94,21 @@ export const AdminUsers: React.FC = () => {
       return;
     }
     if (!isSupabaseConfigured || !supabase) return;
+    const updateData: { user_name: string; password?: string } = { user_name: trimmed };
+    if (editPassword.trim()) {
+      updateData.password = editPassword;
+    }
     const { error: updateError } = await supabase
       .from('users')
-      .update({ user_name: trimmed })
+      .update(updateData)
       .eq('id', editingId);
     if (updateError) {
       setError(updateError.message);
     } else {
-      setUsers(prev => prev.map(u => u.id === editingId ? { ...u, user_name: trimmed } : u).sort((a, b) => a.user_name.localeCompare(b.user_name)));
+      setUsers(prev => prev.map(u => u.id === editingId ? { ...u, user_name: trimmed, ...(editPassword.trim() ? { password: editPassword } : {}) } : u).sort((a, b) => a.user_name.localeCompare(b.user_name)));
       setEditingId(null);
       setEditValue('');
+      setEditPassword('');
       setError(null);
     }
   };
@@ -117,20 +132,36 @@ export const AdminUsers: React.FC = () => {
       <h1 className="admin-page-title">Manage Users</h1>
       <p className="admin-page-desc">Add, edit, or remove users from the session picker. Admin is always available.</p>
 
-      <div className="admin-add-row">
-        <input
-          type="text"
-          className="form-input"
-          placeholder="New user name"
-          value={newUser}
-          onChange={e => { setNewUser(e.target.value); setError(null); }}
-          onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
-          maxLength={20}
-        />
-        <button className="btn btn-primary" onClick={handleAdd} type="button">
-          <UserPlus size={18} />
-          <span>Add</span>
-        </button>
+      <div className="admin-add-row" style={{ flexDirection: 'column', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="New user name"
+            value={newUser}
+            onChange={e => { setNewUser(e.target.value); setError(null); }}
+            onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
+            maxLength={20}
+            style={{ flex: 1 }}
+          />
+          <button className="btn btn-primary" onClick={handleAdd} type="button">
+            <UserPlus size={18} />
+            <span>Add</span>
+          </button>
+        </div>
+        <div className="admin-password-field" style={{ width: '100%' }}>
+          <input
+            type={showNewPassword ? 'text' : 'password'}
+            className="form-input"
+            placeholder="Password"
+            value={newPassword}
+            onChange={e => { setNewPassword(e.target.value); setError(null); }}
+            onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
+          />
+          <button className="admin-eye-btn" onClick={() => setShowNewPassword(!showNewPassword)} type="button">
+            {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -159,6 +190,19 @@ export const AdminUsers: React.FC = () => {
                     maxLength={20}
                     style={{ flex: 1 }}
                   />
+                  <div className="admin-password-field" style={{ flex: 1 }}>
+                    <input
+                      type={showEditPassword ? 'text' : 'password'}
+                      className="form-input"
+                      placeholder="New password (leave empty to keep)"
+                      value={editPassword}
+                      onChange={e => setEditPassword(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') setEditingId(null); }}
+                    />
+                    <button className="admin-eye-btn" onClick={() => setShowEditPassword(!showEditPassword)} type="button">
+                      {showEditPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                   <button className="btn btn-primary" onClick={handleSaveEdit} type="button" style={{ padding: '0.4rem 0.8rem' }}>
                     Save
                   </button>

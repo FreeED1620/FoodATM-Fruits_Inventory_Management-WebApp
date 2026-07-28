@@ -16,6 +16,9 @@ export const SessionPicker: React.FC = () => {
   const [adminPassword, setAdminPassword] = useState("");
   const [adminError, setAdminError] = useState<string | null>(null);
   const [adminLoading, setAdminLoading] = useState(false);
+  const [userPassword, setUserPassword] = useState("");
+  const [userPasswordError, setUserPasswordError] = useState<string | null>(null);
+  const [userPasswordLoading, setUserPasswordLoading] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -44,26 +47,62 @@ export const SessionPicker: React.FC = () => {
     return !!(data && data.length > 0);
   };
 
-  const handleStart = async () => {
-    if (!selectedUser) {
-      setError("Please select a user.");
+  const handleUserLogin = async () => {
+    if (!selectedUser) return;
+    if (!userPassword.trim()) {
+      setUserPasswordError("Enter your password");
+      return;
+    }
+    setUserPasswordLoading(true);
+    setUserPasswordError(null);
+
+    if (!isSupabaseConfigured || !supabase) {
+      setUserPasswordError("Supabase is not configured");
+      setUserPasswordLoading(false);
+      return;
+    }
+
+    const { data } = await supabase
+      .from("users")
+      .select("password")
+      .eq("user_name", selectedUser)
+      .single();
+
+    if (!data || !data.password) {
+      setUserPasswordError("No password set. Contact admin.");
+      setUserPasswordLoading(false);
+      return;
+    }
+
+    if (userPassword !== data.password) {
+      setUserPasswordError("Incorrect password");
+      setUserPasswordLoading(false);
       return;
     }
 
     setStarting(true);
-    setError(null);
     try {
       const isActive = await checkActiveSession(selectedUser);
       if (isActive) {
         setError("This user is already active on another device.");
         setStarting(false);
+        setUserPasswordLoading(false);
         return;
       }
       await startSession(selectedUser);
     } catch (err: any) {
       setError(err.message || "Failed to start session");
       setStarting(false);
+      setUserPasswordLoading(false);
     }
+  };
+
+  const handleSelectUser = (user: string) => {
+    setSelectedUser(user);
+    setError(null);
+    setShowAdminPassword(false);
+    setUserPassword("");
+    setUserPasswordError(null);
   };
 
   const handleAdminClick = () => {
@@ -125,11 +164,7 @@ export const SessionPicker: React.FC = () => {
               <button
                 key={user}
                 className={`session-user-btn ${selectedUser === user ? "selected" : ""}`}
-                onClick={() => {
-                  setSelectedUser(user);
-                  setError(null);
-                  setShowAdminPassword(false);
-                }}
+                onClick={() => handleSelectUser(user)}
                 type="button"
               >
                 <span className="session-user-avatar">
@@ -151,6 +186,52 @@ export const SessionPicker: React.FC = () => {
             <span className="session-user-name">Admin</span>
           </button>
         </div>
+
+        {selectedUser && selectedUser !== "Admin" && (
+          <div className="admin-password-form">
+            <p className="admin-password-label">Enter password for {selectedUser}</p>
+            <div style={{ position: "relative" }}>
+              <input
+                type="password"
+                className="form-input"
+                placeholder="Password"
+                value={userPassword}
+                onChange={(e) => {
+                  setUserPassword(e.target.value);
+                  setUserPasswordError(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleUserLogin();
+                }}
+                autoFocus
+              />
+            </div>
+            {userPasswordError && (
+              <div
+                className="form-error"
+                style={{
+                  marginTop: "0.5rem",
+                  background: "rgba(239, 68, 68, 0.1)",
+                  padding: "0.5rem 0.75rem",
+                  borderRadius: "8px",
+                  textAlign: "center",
+                }}
+              >
+                {userPasswordError}
+              </div>
+            )}
+            <button
+              className="btn btn-primary session-start-btn"
+              onClick={handleUserLogin}
+              disabled={userPasswordLoading || starting}
+              type="button"
+              style={{ marginTop: "0.75rem" }}
+            >
+              <LogIn size={18} />
+              <span>{userPasswordLoading ? "Verifying..." : starting ? "Starting..." : "Login"}</span>
+            </button>
+          </div>
+        )}
 
         {showAdminPassword && (
           <div className="admin-password-form">
@@ -209,18 +290,6 @@ export const SessionPicker: React.FC = () => {
           >
             {error}
           </div>
-        )}
-
-        {!showAdminPassword && (
-          <button
-            className="btn btn-primary session-start-btn"
-            onClick={handleStart}
-            disabled={!selectedUser || starting}
-            type="button"
-          >
-            <LogIn size={20} />
-            <span>{starting ? "Starting..." : "Start Session"}</span>
-          </button>
         )}
       </div>
     </div>

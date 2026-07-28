@@ -269,7 +269,7 @@ export class InventoryService {
         inventory_item_id: targetItem.id,
         inventory_id: targetItem.inventoryId,
         action: 'DISPOSE',
-        quantity_affected: 0,
+        quantity_affected: targetItem.quantity,
         session_id: sessionId,
       }]);
 

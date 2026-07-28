@@ -15,6 +15,7 @@ import {
   ShoppingCart,
   Share2,
   ArrowLeftRight,
+  Trash2,
 } from "lucide-react";
 
 async function loadUsers(): Promise<string[]> {
@@ -210,6 +211,9 @@ export const AdminUserSummary: React.FC = () => {
   const transferCount = userDailyLogs.filter(
     (l) => l.action === "TRANSFER",
   ).length;
+  const disposeCount = userDailyLogs.filter(
+    (l) => l.action === "DISPOSE",
+  ).length;
 
   return (
     <div className="admin-page">
@@ -368,14 +372,6 @@ export const AdminUserSummary: React.FC = () => {
               </div>
             </div>
             <div className="uab-stat-divider" />
-            <div className="uab-stat-seg uab-stat-tx">
-              <Activity size={16} className="uab-stat-icon" />
-              <div className="uab-stat-info">
-                <span className="uab-stat-num">{userDailyLogs.length}</span>
-                <span className="uab-stat-lbl">Transactions</span>
-              </div>
-            </div>
-            <div className="uab-stat-divider" />
             <div className="uab-stat-seg uab-stat-sell">
               <ShoppingCart size={16} className="uab-stat-icon" />
               <div className="uab-stat-info">
@@ -397,6 +393,14 @@ export const AdminUserSummary: React.FC = () => {
               <div className="uab-stat-info">
                 <span className="uab-stat-num">{transferCount}</span>
                 <span className="uab-stat-lbl">Transfers</span>
+              </div>
+            </div>
+            <div className="uab-stat-divider" />
+            <div className="uab-stat-seg uab-stat-dispose">
+              <Trash2 size={16} className="uab-stat-icon" />
+              <div className="uab-stat-info">
+                <span className="uab-stat-num">{disposeCount}</span>
+                <span className="uab-stat-lbl">Disposed</span>
               </div>
             </div>
           </div>

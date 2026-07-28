@@ -238,7 +238,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Overall Statistics computation
   const stats: InventoryStats = useMemo(() => {
-    const activeItems = items.filter(i => i.quantity > 0);
+    const activeItems = items.filter(i => i.quantity > 0 && i.status !== 'EXPIRED' && i.status !== 'DISPOSED');
     const batchSet = new Set(activeItems.map(i => i.batchNumber));
     let totalKg = 0;
     let expiringSoon = 0;

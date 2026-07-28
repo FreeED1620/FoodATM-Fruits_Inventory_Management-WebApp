@@ -23,7 +23,7 @@ export const InventoryList: React.FC<InventoryListProps> = ({ onNavigate }) => {
   } = useInventory();
 
   // Extract unique active batch numbers from items with remaining quantity
-  const uniqueBatches = Array.from(new Set(items.filter(i => i.quantity > 0).map(i => i.batchNumber))).sort((a, b) => a - b);
+  const uniqueBatches = Array.from(new Set(items.filter(i => i.quantity > 0 && i.status !== 'EXPIRED' && i.status !== 'DISPOSED').map(i => i.batchNumber))).sort((a, b) => a - b);
 
   if (loading && items.length === 0) {
     return (

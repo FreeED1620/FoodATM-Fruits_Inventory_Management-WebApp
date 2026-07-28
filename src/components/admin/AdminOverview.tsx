@@ -41,7 +41,7 @@ export const AdminOverview: React.FC = () => {
     fetchSessionData();
   }, []);
 
-  const criticalItems = items.filter(i => i.quantity > 0 && getDaysUntil(i.expiryDate) >= 0 && getDaysUntil(i.expiryDate) <= 3);
+  const criticalItems = items.filter(i => i.quantity > 0 && i.status !== 'EXPIRED' && i.status !== 'DISPOSED' && getDaysUntil(i.expiryDate) >= 0 && getDaysUntil(i.expiryDate) <= 3);
 
   const statCards = [
     { label: 'Total Items', value: stats.totalItems, icon: Package, color: '#3b82f6' },
