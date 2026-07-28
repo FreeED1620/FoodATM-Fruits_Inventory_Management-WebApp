@@ -1,22 +1,34 @@
 import React, { useState, useMemo } from 'react';
 import { useInventory } from '../../context/InventoryContext';
-import { getDaysUntil } from '../../utils/dateUtils';
-import { Search } from 'lucide-react';
+import { Search, RefreshCw } from 'lucide-react';
 
 export const AdminInventory: React.FC = () => {
-  const { items } = useInventory();
+  const { items, refreshItems } = useInventory();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'AVAILABLE' | 'EXPIRED' | 'DISPOSED' | 'SOLD' | 'DISTRIBUTED' | 'TRANSFERRED'>('ALL');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refreshItems();
+    setRefreshing(false);
+  };
 
   const filtered = useMemo(() => {
-    return items.filter(item => {
-      if (statusFilter !== 'ALL' && item.status !== statusFilter) return false;
+    return items
+      .filter(item => {
+        if (statusFilter !== 'ALL' && item.status !== statusFilter) return false;
 
-      const q = searchQuery.toLowerCase().trim();
-      if (q && !item.fruitName.toLowerCase().includes(q) && !item.inventoryId.toLowerCase().includes(q)) return false;
+        const q = searchQuery.toLowerCase().trim();
+        if (q && !item.fruitName.toLowerCase().includes(q) && !item.inventoryId.toLowerCase().includes(q)) return false;
 
-      return true;
-    });
+        return true;
+      })
+      .sort((a, b) => {
+        const aTime = a.updatedAt || a.createdAt;
+        const bTime = b.updatedAt || b.createdAt;
+        return bTime.localeCompare(aTime);
+      });
   }, [items, searchQuery, statusFilter]);
 
   const statusOptions: Array<{ value: typeof statusFilter; label: string }> = [
@@ -44,6 +56,10 @@ export const AdminInventory: React.FC = () => {
             onChange={e => setSearchQuery(e.target.value)}
           />
         </div>
+        <button className="uab-refresh-btn" onClick={handleRefresh} disabled={refreshing} type="button">
+          <RefreshCw size={15} className={refreshing ? 'spin' : ''} />
+          <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+        </button>
         <div className="admin-status-chips">
           {statusOptions.map(opt => (
             <button
@@ -73,14 +89,11 @@ export const AdminInventory: React.FC = () => {
                 <th>Batch</th>
                 <th>Received</th>
                 <th>Expiry</th>
-                <th>Days Left</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(item => {
-                const days = getDaysUntil(item.expiryDate);
-                return (
+              {filtered.map(item => (
                   <tr key={item.id}>
                     <td className="admin-table-id">{item.inventoryId}</td>
                     <td>{item.fruitName}</td>
@@ -88,17 +101,13 @@ export const AdminInventory: React.FC = () => {
                     <td>B{item.batchNumber}</td>
                     <td>{item.receivedDate}</td>
                     <td>{item.expiryDate}</td>
-                    <td className={days < 0 ? 'admin-text-critical' : days <= 3 ? 'admin-text-critical' : days <= 7 ? 'admin-text-warning' : ''}>
-                      {days < 0 ? `${Math.abs(days)}d ago` : `${days}d`}
-                    </td>
                     <td>
                       <span className={`admin-badge badge-${item.status === 'AVAILABLE' ? 'active' : 'ended'}`}>
                         {item.status}
                       </span>
                     </td>
                   </tr>
-                );
-              })}
+                ))}
             </tbody>
           </table>
         </div>
