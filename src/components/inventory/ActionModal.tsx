@@ -44,7 +44,7 @@ export const ActionModal: React.FC = () => {
 
   useEffect(() => {
     if (item && isActionModalOpen) {
-      setQuantity('10');
+      setQuantity('');
       setTargetBranch(branchOptions[0] || '');
       setErrorMsg(null);
       setActiveAction('SELL');
