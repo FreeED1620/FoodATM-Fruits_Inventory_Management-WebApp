@@ -24,6 +24,10 @@ export const AddFruitModal: React.FC = () => {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [fruitOptions, setFruitOptions] = useState<FruitImageRecord[]>([]);
 
+  const handleClose = () => {
+    if (!submitting) closeAddModal();
+  };
+
   useEffect(() => {
     if (isAddModalOpen) {
       setBatchInput('');
@@ -95,7 +99,7 @@ export const AddFruitModal: React.FC = () => {
   };
 
   return (
-    <Modal isOpen={isAddModalOpen} onClose={closeAddModal} title="Add New Fruit Record">
+    <Modal isOpen={isAddModalOpen} onClose={handleClose} title="Add New Fruit Record">
       <form onSubmit={handleSubmit}>
         {/* Scrollable Fruit Image Strip */}
         <div className="form-group" style={{ marginBottom: '1.25rem' }}>
@@ -212,7 +216,8 @@ export const AddFruitModal: React.FC = () => {
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={closeAddModal}
+            onClick={handleClose}
+            disabled={submitting}
             style={{ flex: 1 }}
           >
             Cancel

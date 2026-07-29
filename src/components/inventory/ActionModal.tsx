@@ -22,6 +22,10 @@ export const ActionModal: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
+  const safeClose = () => {
+    if (!submitting) closeActionModal();
+  };
+
   useEffect(() => {
     const fetchBranches = async () => {
       if (!isSupabaseConfigured || !supabase) return;
@@ -101,7 +105,7 @@ export const ActionModal: React.FC = () => {
   return (
     <Modal
       isOpen={isActionModalOpen}
-      onClose={closeActionModal}
+      onClose={safeClose}
       title={`Inventory Action: ${item.inventoryId}`}
     >
       {/* Selected Item Summary Header */}
@@ -276,7 +280,7 @@ export const ActionModal: React.FC = () => {
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
-          <button type="button" className="btn btn-secondary" onClick={closeActionModal} style={{ flex: 1 }}>
+          <button type="button" className="btn btn-secondary" onClick={safeClose} disabled={submitting} style={{ flex: 1 }}>
             Cancel
           </button>
 
