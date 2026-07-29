@@ -51,6 +51,7 @@ export interface InventoryLog {
   reversedAt: string | null;
   createdAt: string;
   fruitName?: string;
+  userName?: string;
 }
 
 export type ExpiryUrgency = 'EXPIRED' | 'CRITICAL' | 'WARNING' | 'FRESH';

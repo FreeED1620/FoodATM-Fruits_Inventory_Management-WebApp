@@ -14,13 +14,14 @@ import { Toast } from './components/common/Toast';
 import { AdminGate } from './components/admin/AdminGate';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminOverview } from './components/admin/AdminOverview';
-import { AdminInventory } from './components/admin/AdminInventory';
+import { AdminTransactionHistory } from './components/admin/AdminTransactionHistory';
 import { AdminFruitImages } from './components/admin/AdminFruitImages';
 import { AdminUsers } from './components/admin/AdminUsers';
 import { AdminSessions } from './components/admin/AdminSessions';
 import { AdminSettings } from './components/admin/AdminSettings';
 import { AdminBranches } from './components/admin/AdminBranches';
 import { AdminUserSummary } from './components/admin/AdminUserSummary';
+import { AdminMainInventory } from './components/admin/AdminMainInventory';
 import { Plus } from 'lucide-react';
 
 export type PageView = 'inventory' | 'history' | 'expired';
@@ -90,7 +91,8 @@ const AdminRoute: React.FC = () => {
         <Routes>
           <Route path="/" element={<AdminOverview />} />
           <Route path="/user-summary" element={<AdminUserSummary />} />
-          <Route path="/inventory" element={<AdminInventory />} />
+          <Route path="/inventory" element={<AdminTransactionHistory />} />
+          <Route path="/main-inventory" element={<AdminMainInventory />} />
           <Route path="/fruit-images" element={<AdminFruitImages />} />
           <Route path="/users" element={<AdminUsers />} />
           <Route path="/sessions" element={<AdminSessions />} />

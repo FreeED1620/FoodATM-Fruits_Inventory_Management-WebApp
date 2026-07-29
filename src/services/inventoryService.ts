@@ -135,7 +135,7 @@ export class InventoryService {
 
     const { data, error } = await client
       .from('inventory_logs')
-      .select('*, inventory_items(fruit_name)')
+      .select('*, inventory_items(fruit_name), sessions(user_name)')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -155,6 +155,7 @@ export class InventoryService {
       createdAt: row.created_at,
       fruitName: row.inventory_items?.fruit_name || 'Unknown',
       sessionId: row.session_id || null,
+      userName: row.sessions?.user_name || 'Unknown',
     }));
   }
 
