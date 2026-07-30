@@ -13,6 +13,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBack }) => {
   const { logs, fetchLogs, undoAction, loading } = useInventory();
   const [undoTarget, setUndoTarget] = useState<InventoryLog | null>(null);
   const [undoing, setUndoing] = useState(false);
+  const isAdminView = window.location.pathname.includes('/admin/');
 
   useEffect(() => {
     fetchLogs();
@@ -76,7 +77,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBack }) => {
         <div className="empty-state" style={{ marginTop: '2rem' }}>
           <div className="empty-icon">📋</div>
           <h3 className="empty-title">No Transactions Yet</h3>
-          <p className="empty-desc">When you sell, distribute, or transfer fruits, those transactions will appear here.</p>
+          <p className="empty-desc">When you sell, distribute, or transfer items, those transactions will appear here.</p>
         </div>
       ) : (
         <>
@@ -99,7 +100,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBack }) => {
                       <div className="log-date">{formatDateTime(log.createdAt)}</div>
                     </div>
                   </div>
-                  {isWithinUndoWindow(log.createdAt) && (
+                  {isAdminView && isWithinUndoWindow(log.createdAt) && (
                     <button
                       className="log-undo-btn"
                       onClick={() => setUndoTarget(log)}

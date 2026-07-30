@@ -21,6 +21,7 @@ import { AdminSessions } from './components/admin/AdminSessions';
 import { AdminSettings } from './components/admin/AdminSettings';
 import { AdminBranches } from './components/admin/AdminBranches';
 import { AdminUserSummary } from './components/admin/AdminUserSummary';
+import { AdminUserView } from './components/admin/AdminUserView';
 import { AdminMainInventory } from './components/admin/AdminMainInventory';
 import { Plus } from 'lucide-react';
 
@@ -44,8 +45,8 @@ const InventoryApp: React.FC = () => {
         <button
           className="fab-add-btn"
           onClick={openAddModal}
-          aria-label="Add Fruit Item"
-          title="Add New Fruit Record"
+          aria-label="Add Item"
+          title="Add New Item Record"
           type="button"
         >
           <Plus size={28} />
@@ -91,6 +92,7 @@ const AdminRoute: React.FC = () => {
         <Routes>
           <Route path="/" element={<AdminOverview />} />
           <Route path="/user-summary" element={<AdminUserSummary />} />
+          <Route path="/user-view" element={<AdminUserView />} />
           <Route path="/inventory" element={<AdminTransactionHistory />} />
           <Route path="/main-inventory" element={<AdminMainInventory />} />
           <Route path="/fruit-images" element={<AdminFruitImages />} />

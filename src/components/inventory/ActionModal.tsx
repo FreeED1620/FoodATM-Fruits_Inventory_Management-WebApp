@@ -21,6 +21,7 @@ export const ActionModal: React.FC = () => {
   const [branchOptions, setBranchOptions] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const isAdminView = window.location.pathname.includes('/admin/');
 
   const safeClose = () => {
     if (!submitting) closeActionModal();
@@ -152,6 +153,7 @@ export const ActionModal: React.FC = () => {
           Sell
         </button>
 
+        {isAdminView && (
         <button
           type="button"
           className={`tab-btn ${activeAction === 'DISTRIBUTE' ? 'active active-distribute' : ''}`}
@@ -160,6 +162,7 @@ export const ActionModal: React.FC = () => {
           <Send size={15} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />
           Distribute
         </button>
+        )}
 
         <button
           type="button"
@@ -170,6 +173,7 @@ export const ActionModal: React.FC = () => {
           Transfer
         </button>
 
+        {isAdminView && (
         <button
           type="button"
           className={`tab-btn ${activeAction === 'EXPIRED' ? 'active active-expired' : ''}`}
@@ -178,6 +182,7 @@ export const ActionModal: React.FC = () => {
           <AlertTriangle size={15} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />
           Expired
         </button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit}>

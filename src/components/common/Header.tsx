@@ -77,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             type="button"
           >
             <Plus size={20} />
-            <span>Add Fruit</span>
+                <span>Add Item</span>
           </button>
 
           <button

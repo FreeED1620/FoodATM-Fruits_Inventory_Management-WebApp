@@ -457,7 +457,8 @@ export const AdminUserSummary: React.FC = () => {
                       <thead>
                         <tr>
                           <th>Inventory ID</th>
-                          <th>Fruit</th>
+                          <th>Item</th>
+                          <th>Initial Qty</th>
                           <th>Quantity</th>
                           <th>Batch</th>
                           <th>Received</th>
@@ -485,6 +486,9 @@ export const AdminUserSummary: React.FC = () => {
                                 />
                                 <strong>{item.fruitName}</strong>
                               </div>
+                            </td>
+                            <td>
+                              <strong>{item.originalQuantity}</strong> {item.unit}
                             </td>
                             <td>
                               <strong>{item.quantity}</strong> {item.unit}
@@ -521,7 +525,7 @@ export const AdminUserSummary: React.FC = () => {
                           <th>Time</th>
                           <th>Action</th>
                           <th>Inventory ID</th>
-                          <th>Fruit</th>
+                          <th>Item</th>
                           <th>Qty</th>
                           <th>Recipient</th>
                           <th>Status</th>

@@ -10,6 +10,7 @@ export interface InventoryItem {
   fruitName: string;
   categoryCode: CategoryCode;
   quantity: number;
+  originalQuantity: number;
   unit: string;
   batchNumber: number;
   seqNumber: number;

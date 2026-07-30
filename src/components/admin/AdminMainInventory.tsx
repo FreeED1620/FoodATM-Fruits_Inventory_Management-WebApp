@@ -32,7 +32,7 @@ export const AdminMainInventory: React.FC = () => {
     <div className="admin-page">
       <h1 className="admin-page-title">Main Inventory Items</h1>
       <p className="admin-page-desc">
-        Click a fruit to view available stock by batch.
+        Click an item to view available stock by batch.
       </p>
 
       {fruits.length === 0 ? (
@@ -71,7 +71,7 @@ export const AdminMainInventory: React.FC = () => {
             </div>
 
             {availableBatches.length === 0 ? (
-              <p className="tab-empty-text">No available stock for this fruit.</p>
+              <p className="tab-empty-text">No available stock for this item.</p>
             ) : (
               <div className="admin-table-wrap" style={{ marginTop: '1rem' }}>
                 <table className="admin-table">

@@ -78,7 +78,7 @@ export const AdminTransactionHistory: React.FC = () => {
           <input
             type="text"
             className="form-input"
-            placeholder="Search fruit, user, action..."
+            placeholder="Search item, user, action..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
           />
@@ -129,7 +129,7 @@ export const AdminTransactionHistory: React.FC = () => {
                 <th>Time</th>
                 <th>User</th>
                 <th>Action</th>
-                <th>Fruit</th>
+                <th>Item</th>
                 <th>Qty</th>
                 <th>Recipient</th>
               </tr>

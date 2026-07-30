@@ -51,7 +51,7 @@ export const AddFruitModal: React.FC = () => {
     setFormError(null);
 
     if (!fruitName.trim()) {
-      setFormError('Please select or enter a fruit name.');
+      setFormError('Please select or enter an item name.');
       return;
     }
 
@@ -99,11 +99,11 @@ export const AddFruitModal: React.FC = () => {
   };
 
   return (
-    <Modal isOpen={isAddModalOpen} onClose={handleClose} title="Add New Fruit Record">
+    <Modal isOpen={isAddModalOpen} onClose={handleClose} title="Add New Item Record">
       <form onSubmit={handleSubmit}>
         {/* Scrollable Fruit Image Strip */}
         <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-          <label className="form-label">Fruit Name *</label>
+          <label className="form-label">Item Name *</label>
           {fruitOptions.length > 0 ? (
             <div className="fruit-scroll-strip">
               {fruitOptions.map(fruit => {
@@ -128,7 +128,7 @@ export const AddFruitModal: React.FC = () => {
             </div>
           ) : (
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-              No fruits defined yet. Admin can add them in Manage Fruits.
+              No items defined yet. Admin can add them in Manage Items.
             </p>
           )}
 
@@ -137,7 +137,7 @@ export const AddFruitModal: React.FC = () => {
             <input
               type="text"
               className="form-input"
-              placeholder="Or type custom fruit name..."
+              placeholder="Or type custom item name..."
               value={fruitName}
               onChange={e => setFruitName(e.target.value)}
               maxLength={30}
@@ -230,7 +230,7 @@ export const AddFruitModal: React.FC = () => {
             style={{ flex: 2 }}
           >
             <Sparkles size={18} />
-            <span>{submitting ? 'Saving Record...' : 'Save Fruit Record'}</span>
+            <span>{submitting ? 'Saving Record...' : 'Save Item Record'}</span>
           </button>
         </div>
       </form>

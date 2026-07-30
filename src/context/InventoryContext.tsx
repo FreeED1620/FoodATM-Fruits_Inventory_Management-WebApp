@@ -131,7 +131,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       showToast(`Added ${createdItem.fruitName} (${createdItem.inventoryId}) successfully!`, 'success');
       return true;
     } catch (err: any) {
-      showToast(err.message || 'Failed to add fruit record', 'error');
+      showToast(err.message || 'Failed to add item record', 'error');
       return false;
     }
   };

@@ -15,14 +15,16 @@ import {
   Activity,
   MapPin,
   Layers,
+  Eye,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { path: '/admin', label: 'Overview', icon: LayoutDashboard },
   { path: '/admin/user-summary', label: 'User Activity', icon: Activity },
   { path: '/admin/inventory', label: 'Transaction History', icon: Package },
+  { path: '/admin/user-view', label: 'User View', icon: Eye },
   { path: '/admin/main-inventory', label: 'Main Inventory', icon: Layers },
-  { path: '/admin/fruit-images', label: 'Manage Fruits', icon: Image },
+  { path: '/admin/fruit-images', label: 'Manage Items', icon: Image },
   { path: '/admin/users', label: 'Users', icon: Users },
   { path: '/admin/sessions', label: 'Sessions', icon: ClipboardList },
   { path: '/admin/branches', label: 'Branches', icon: MapPin },

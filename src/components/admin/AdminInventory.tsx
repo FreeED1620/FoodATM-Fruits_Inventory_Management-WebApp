@@ -84,7 +84,7 @@ export const AdminInventory: React.FC = () => {
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Fruit</th>
+                <th>Item</th>
                 <th>Qty</th>
                 <th>Batch</th>
                 <th>Received</th>

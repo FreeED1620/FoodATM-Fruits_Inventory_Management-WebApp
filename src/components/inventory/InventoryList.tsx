@@ -29,7 +29,7 @@ export const InventoryList: React.FC<InventoryListProps> = ({ onNavigate }) => {
     return (
       <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
         <div className="spinner" style={{ margin: '0 auto 1rem auto' }}></div>
-        <p style={{ color: 'var(--text-secondary)' }}>Loading fruit inventory...</p>
+        <p style={{ color: 'var(--text-secondary)' }}>Loading inventory...</p>
       </div>
     );
   }
@@ -43,7 +43,7 @@ export const InventoryList: React.FC<InventoryListProps> = ({ onNavigate }) => {
           <input
             type="text"
             className="search-input"
-            placeholder="Search fruit name, ID..."
+            placeholder="Search item name, ID..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             maxLength={50}
@@ -104,16 +104,16 @@ export const InventoryList: React.FC<InventoryListProps> = ({ onNavigate }) => {
       ) : (
         <div className="empty-state">
           <div className="empty-icon">🧺</div>
-          <h3 className="empty-title">No Fruit Records Found</h3>
+          <h3 className="empty-title">No Item Records Found</h3>
           <p className="empty-desc">
             {searchQuery || activeBatchFilter !== null || activeExpiryFilter !== 'ALL'
-              ? 'No fruit items match your current search or filter criteria.'
-              : 'The fruit warehouse inventory is currently empty. Tap the button below to register a fruit entry.'}
+              ? 'No items match your current search or filter criteria.'
+              : 'The warehouse inventory is currently empty. Tap the button below to register an item entry.'}
           </p>
           {!searchQuery && activeBatchFilter === null && activeExpiryFilter === 'ALL' && (
             <button className="btn btn-primary" onClick={openAddModal} type="button">
               <Plus size={18} />
-              <span>Add First Fruit Record</span>
+                <span>Add First Item Record</span>
             </button>
           )}
         </div>

@@ -57,7 +57,7 @@ export const AdminFruitImages: React.FC = () => {
 
   const handleUpload = async () => {
     if (!fruitName.trim()) {
-      setError('Enter a fruit name.');
+      setError('Enter an item name.');
       return;
     }
     if (!pendingFile) {
@@ -123,8 +123,8 @@ export const AdminFruitImages: React.FC = () => {
 
   return (
     <div className="admin-page">
-      <h1 className="admin-page-title">Manage Fruits</h1>
-      <p className="admin-page-desc">Define fruits with names and images. These appear on the user side when adding inventory.</p>
+      <h1 className="admin-page-title">Manage Items</h1>
+      <p className="admin-page-desc">Define items with names and images. These appear on the user side when adding inventory.</p>
 
       {/* Upload Section */}
       <div className="admin-section">
@@ -154,7 +154,7 @@ export const AdminFruitImages: React.FC = () => {
           </div>
 
           <div className="admin-upload-fields">
-            <label className="admin-label">Fruit Name</label>
+            <label className="admin-label">Item Name</label>
             <input
               type="text"
               className="form-input"
