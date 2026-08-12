@@ -40,9 +40,9 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         .from('sessions')
         .select('ended_at')
         .eq('id', currentSession.sessionId)
-        .single();
+        .maybeSingle();
 
-      if (data && data.ended_at) {
+      if (!data || data.ended_at) {
         localStorage.removeItem(SESSION_STORAGE_KEY);
         setCurrentSession(null);
       }

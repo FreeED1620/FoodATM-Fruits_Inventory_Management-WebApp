@@ -2525,6 +2525,15 @@ body.menu-open .fab-add-btn {
   animation: fadeIn 0.2s ease;
 }
 
+/* User View: expand to full remaining width so the user app looks native */
+.admin-main:has(.admin-user-view) {
+  max-width: none;
+  padding: 1.5rem;
+}
+.admin-user-view .main-content {
+  max-width: none;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

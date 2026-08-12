@@ -300,28 +300,11 @@ export class InventoryService {
     const allLogs = await this.getLogs();
 
     const summaries: UserSessionSummary[] = (sessions || []).map(sess => {
-      const startTime = new Date(sess.started_at).getTime();
-      const endTime = sess.ended_at ? new Date(sess.ended_at).getTime() : Date.now();
+      // Match items added in this session by session_id
+      const itemsAdded = allItems.filter(item => item.sessionId && item.sessionId === sess.id);
 
-      // Match items added in this session by session_id or timestamp window
-      const itemsAdded = allItems.filter(item => {
-        if (item.sessionId && item.sessionId === sess.id) return true;
-        if (item.createdAt) {
-          const itemTime = new Date(item.createdAt).getTime();
-          return itemTime >= startTime - 1000 && itemTime <= endTime + 1000;
-        }
-        return false;
-      });
-
-      // Match logs committed in this session by session_id or timestamp window
-      const logsCommitted = allLogs.filter(log => {
-        if (log.sessionId && log.sessionId === sess.id) return true;
-        if (log.createdAt) {
-          const logTime = new Date(log.createdAt).getTime();
-          return logTime >= startTime - 1000 && logTime <= endTime + 1000;
-        }
-        return false;
-      });
+      // Match logs committed in this session by session_id
+      const logsCommitted = allLogs.filter(log => log.sessionId && log.sessionId === sess.id);
 
       return {
         sessionId: sess.id,

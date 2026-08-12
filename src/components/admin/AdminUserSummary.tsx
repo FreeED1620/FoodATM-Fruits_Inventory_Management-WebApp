@@ -25,9 +25,10 @@ async function loadUsers(): Promise<string[]> {
     .select('user_name')
     .order('user_name');
   if (data) {
-    return data
+    const users = data
       .map((u: { user_name: string }) => u.user_name)
       .filter((name: string) => name.toLowerCase() !== 'admin');
+    return [...users, 'Admin'];
   }
   return ["User-1", "User-2", "User-3", "User-4"];
 }
@@ -64,11 +65,7 @@ export const AdminUserSummary: React.FC = () => {
     setError(null);
     try {
       const data = await InventoryService.getUserActivityData();
-      // Exclude Admin sessions
-      const nonAdminData = data.filter(
-        (s) => s.userName && s.userName.toLowerCase() !== "admin",
-      );
-      setAllSummaries(nonAdminData);
+      setAllSummaries(data);
     } catch (err: any) {
       setError(err.message || "Failed to load user activity summary");
     } finally {

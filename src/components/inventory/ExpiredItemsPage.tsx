@@ -15,6 +15,7 @@ export const ExpiredItemsPage: React.FC<ExpiredItemsPageProps> = ({ onBack }) =>
   const [disposeTarget, setDisposeTarget] = useState<InventoryItem | null>(null);
   const [disposing, setDisposing] = useState(false);
   const [tick, setTick] = useState(0);
+  const isAdminView = window.location.pathname.includes('/admin/');
 
   useEffect(() => {
     const interval = setInterval(() => setTick(t => t + 1), 60000);
@@ -118,6 +119,7 @@ export const ExpiredItemsPage: React.FC<ExpiredItemsPageProps> = ({ onBack }) =>
                       <span className="expired-detail-value">Batch {item.batchNumber}</span>
                     </div>
                   </div>
+                  {isAdminView && (
                   <button
                     className="expired-dispose-btn"
                     onClick={() => setDisposeTarget(item)}
@@ -126,6 +128,7 @@ export const ExpiredItemsPage: React.FC<ExpiredItemsPageProps> = ({ onBack }) =>
                     <Trash2 size={14} />
                     <span>Dispose</span>
                   </button>
+                  )}
                 </div>
               </div>
             );

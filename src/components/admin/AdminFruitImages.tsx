@@ -17,6 +17,7 @@ export const AdminFruitImages: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchImages = async () => {
     setLoading(true);
@@ -188,6 +189,14 @@ export const AdminFruitImages: React.FC = () => {
       <div className="admin-section">
         <div className="admin-page-header-row">
           <h2 className="admin-section-title">Uploaded Images ({images.length})</h2>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Search items..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            style={{ maxWidth: '240px' }}
+          />
           <button className="btn btn-secondary" onClick={fetchImages} type="button">
             <RefreshCw size={16} />
             <span>Refresh</span>
@@ -200,7 +209,10 @@ export const AdminFruitImages: React.FC = () => {
           <p className="admin-empty-text">No images uploaded yet.</p>
         ) : (
           <div className="admin-images-grid">
-            {images.map(img => (
+            {[...images]
+              .sort((a, b) => a.fruitName.localeCompare(b.fruitName))
+              .filter(img => img.fruitName.toLowerCase().includes(searchTerm.toLowerCase().trim()))
+              .map(img => (
               <div key={img.id || img.fruitName} className="admin-image-card">
                 <img src={img.imageUrl} alt={img.fruitName} className="admin-image-thumb" />
                 <div className="admin-image-info">

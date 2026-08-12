@@ -23,6 +23,7 @@ export const AddFruitModal: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [fruitOptions, setFruitOptions] = useState<FruitImageRecord[]>([]);
+  const isAdminView = window.location.pathname.includes('/admin/');
 
   const handleClose = () => {
     if (!submitting) closeAddModal();
@@ -132,7 +133,8 @@ export const AddFruitModal: React.FC = () => {
             </p>
           )}
 
-          {/* Optional custom fruit input */}
+          {/* Optional custom fruit input — admin only */}
+          {isAdminView && (
           <div style={{ marginTop: '0.65rem' }}>
             <input
               type="text"
@@ -144,6 +146,7 @@ export const AddFruitModal: React.FC = () => {
               required
             />
           </div>
+          )}
         </div>
 
         {/* Quantity & Batch Row */}
